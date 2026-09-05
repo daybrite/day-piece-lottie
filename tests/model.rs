@@ -12,6 +12,7 @@ const NO_FRAMES: &str = include_str!("data/no-frames.json");
 const EMPTY_LAYERS: &str = include_str!("data/empty-layers.json");
 const MISSING_ASSET: &str = include_str!("data/missing-asset.json");
 const TRUNCATED: &str = include_str!("data/truncated.json");
+const HAMBURGER: &str = include_str!("data/hamburger-arrow.json");
 
 /// The demo's animation, as the demo and the Showcase display it: what the on-device labels show
 /// is exactly what this test asserts on the host.
@@ -143,4 +144,32 @@ fn layer_defects_are_reported_by_index() {
             Issue::LayerNeverShows { layer: 2 },
         ]
     );
+}
+
+/// The second animation the demo bundles (Airbnb's `HamburgerArrow.json`, Apache-2.0): the facts
+/// `demo/dayscript/lottie.yaml` asserts after the picker swaps to it.
+#[test]
+fn hamburger_arrow_reads_back_its_facts() {
+    let model = LottieModel::parse(HAMBURGER).expect("hamburger-arrow.json parses");
+    assert_eq!(
+        model.name, None,
+        "the exporter recorded no composition name"
+    );
+    assert_eq!(model.frames(), 180.0);
+    assert_eq!(model.frame_rate, 30.0);
+    assert_eq!(model.duration_secs(), 6.0);
+    assert_eq!((model.width, model.height), (400.0, 300.0));
+    assert_eq!(model.layers.len(), 4);
+    let shapes = model
+        .layers
+        .iter()
+        .filter(|l| l.kind == LayerKind::Shape)
+        .count();
+    let nulls = model
+        .layers
+        .iter()
+        .filter(|l| l.kind == LayerKind::Null)
+        .count();
+    assert_eq!((shapes, nulls), (3, 1), "three shapes under a null parent");
+    assert!(model.verify().is_empty(), "{:?}", model.verify());
 }

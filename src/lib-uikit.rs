@@ -26,18 +26,28 @@ unsafe extern "C" {
         speed: f64,
     ) -> *mut c_void;
     fn day_lottie_set_speed(view: *mut c_void, speed: f64);
+    fn day_lottie_set_animation(view: *mut c_void, name: *const c_char, path: *const c_char);
+}
+
+/// `lottie("hello")` means `resource/assets/hello.json`, which `day build` stages into the
+/// bundle's `assets/` (the same file the Android arm reads through AAssetManager). Resolve it to
+/// a path here: lottie-ios's by-name initializer searches the bundle ROOT, so without this an app
+/// would have to add a second copy of the file to its Xcode project by hand. An empty path leaves
+/// the shim on that by-name path, which is what a project doing so still uses.
+fn name_and_path(name: &str) -> (CString, CString) {
+    let file = if name.ends_with(".json") {
+        name.to_string()
+    } else {
+        format!("{name}.json")
+    };
+    let path = day_spec::resource::resolve_asset_file(&file)
+        .and_then(|p| CString::new(p.to_string_lossy().as_ref()).ok())
+        .unwrap_or_default();
+    (CString::new(name).unwrap_or_default(), path)
 }
 
 fn make(_backend: &mut Uikit, p: &LottieProps, _id: NodeId) -> Retained<UIView> {
-    let name = CString::new(p.name.as_str()).unwrap_or_default();
-    // `lottie("hello")` means `resource/assets/hello.json`, which `day build` stages into the
-    // bundle's `assets/` (the same file the Android arm reads through AAssetManager). Resolve it
-    // to a path here: lottie-ios's by-name initializer searches the bundle ROOT, so without this
-    // an app would have to add a second copy of the file to its Xcode project by hand. An empty
-    // path leaves the shim on that by-name path, which is what a project doing so still uses.
-    let path = day_spec::resource::resolve_asset_file(&format!("{}.json", p.name))
-        .and_then(|p| CString::new(p.to_string_lossy().as_ref()).ok())
-        .unwrap_or_default();
+    let (name, path) = name_and_path(&p.name);
     // The shim returns a +1-retained LottieAnimationView (a UIView subclass); we take ownership.
     let ptr = unsafe {
         day_lottie_new(
@@ -52,16 +62,18 @@ fn make(_backend: &mut Uikit, p: &LottieProps, _id: NodeId) -> Retained<UIView> 
 }
 
 fn update(_backend: &mut Uikit, h: &Retained<UIView>, patch: &LottiePatch) {
+    // The stored UIView IS the LottieAnimationView; the shim casts the pointer back.
+    let ptr = (&**h as *const UIView) as *mut c_void;
     match patch {
-        // The stored UIView IS the LottieAnimationView; the shim casts the pointer back to set speed.
-        LottiePatch::Speed(s) => {
-            let ptr = (&**h as *const UIView) as *mut c_void;
-            unsafe { day_lottie_set_speed(ptr, *s) };
+        LottiePatch::Speed(s) => unsafe { day_lottie_set_speed(ptr, *s) },
+        LottiePatch::Name(n) => {
+            let (name, path) = name_and_path(n);
+            unsafe { day_lottie_set_animation(ptr, name.as_ptr(), path.as_ptr()) };
         }
     }
 }
 
-// name/looping/autoplay are set once at build; only `speed` patches.
+// looping/autoplay are set once at build; `name` and `speed` patch.
 day_pieces::renderer!(day_uikit::RENDERERS, Uikit,
     kind: KIND, props: LottieProps, patch: LottiePatch, make: make, update: update,
     measure: day_pieces::fill_measure);

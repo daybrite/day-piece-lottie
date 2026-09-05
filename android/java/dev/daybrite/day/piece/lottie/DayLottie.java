@@ -30,6 +30,20 @@ public final class DayLottie {
         return view;
     }
 
+    /** Load another bundled animation into an existing view (from a `Name` patch): rewind, and keep
+     *  playing if it was playing. Loop mode and speed are properties of the view and stay. */
+    public static void setAnimation(View view, String name) {
+        if (view instanceof LottieAnimationView) {
+            LottieAnimationView v = (LottieAnimationView) view;
+            boolean wasPlaying = v.isAnimating();
+            v.setAnimation(name.endsWith(".json") ? name : name + ".json");
+            v.setProgress(0f);
+            if (wasPlaying) {
+                v.playAnimation();
+            }
+        }
+    }
+
     /** Update the playback rate of an existing view (from a `Speed` patch). */
     public static void setSpeed(View view, float speed) {
         if (view instanceof LottieAnimationView) {

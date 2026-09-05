@@ -16,5 +16,7 @@ The first release from its own repository. The crate moved out of `daybrite/day`
   player would refuse.
 - New: the `demo/` app and its `dayscript/lottie.yaml`, run by CI on the iOS Simulator and the
   Android emulator.
-- Unchanged: `lottie(name)`, `.looping()`, `.autoplay()`, `.speed()`, and the UIKit and Android
-  renderers.
+- New: `lottie(name)` takes any `IntoText` — a `Signal<String>` or closure swaps the animation
+  live through a `Name` patch (`day_lottie_set_animation` on iOS, `DayLottie.setAnimation` on
+  Android). A `/` path under `resource/assets/` works as a name.
+- Unchanged: `.looping()`, `.autoplay()`, `.speed()`, and the two renderers otherwise.

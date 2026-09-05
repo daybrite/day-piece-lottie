@@ -38,8 +38,20 @@ lottie("hello")                 // plays the bundled hello.json, looping and aut
 ```
 
 `lottie(name)` loads `name.json` from the app: the iOS bundle, or Android's `assets/`. Put the
-file under `resource/assets/` and `day build` bundles it. `.looping(false)` plays once,
-`.autoplay(false)` starts paused, and `.speed(_)` takes a constant, a `Signal<f64>`, or a closure.
+file under `resource/assets/` and `day build` bundles it (a `/` path such as
+`"lottie/pin-jump"` reaches a subfolder). `.looping(false)` plays once, `.autoplay(false)` starts
+paused, and `.speed(_)` takes a constant, a `Signal<f64>`, or a closure.
+
+The name takes what `label` takes, so a reactive one swaps the animation live:
+
+```rust
+let files = ["hello", "pin-jump", "watermelon"];
+let selected = Signal::new(0usize);
+column((
+    picker(files, selected),
+    lottie(move || files[selected.get()].to_string()).frame(220.0, 220.0),
+))
+```
 
 The piece has renderers for `ios-uikit` and `android-mdc`. On every other target it draws Day's
 placeholder for an unrendered piece, so gate the page that shows it:

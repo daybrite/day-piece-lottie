@@ -18,16 +18,17 @@ pub mod model;
 pub use model::{Issue, LottieError, LottieModel};
 
 use day_core::{BuildCx, Flex, Piece, RNode, with_tree};
-use day_pieces::{IntoReactive, Reactive};
+use day_pieces::{IntoReactive, IntoText, Reactive, TextSource};
 use day_reactive::bind_seeded;
 
 pub const KIND: &str = "day.piece.lottie";
 
-/// Full props (realize). `name`/`looping`/`autoplay` are set once at build; `speed` seeds the
-/// playback rate and thereafter patches (see [`LottiePatch`]).
+/// Full props (realize). `looping`/`autoplay` are set once at build; `name` and `speed` seed the
+/// view and thereafter patch (see [`LottiePatch`]).
 #[derive(Clone, Debug, PartialEq)]
 pub struct LottieProps {
-    /// The bundled animation name (without extension), e.g. `"hello"` → `hello.json`.
+    /// The bundled animation name (without extension), e.g. `"hello"` → `hello.json`. A `/`
+    /// path under `resource/assets/` works too: `"lottie/pin-jump"`.
     pub name: String,
     /// Loop the animation (vs. play once).
     pub looping: bool,
@@ -48,9 +49,12 @@ impl Default for LottieProps {
     }
 }
 
-/// Sparse reconcile patch — only `speed` changes after build (name/looping/autoplay are fixed).
+/// Sparse reconcile patch: `name` and `speed` change after build (looping/autoplay are fixed).
 #[derive(Clone, Debug, PartialEq)]
 pub enum LottiePatch {
+    /// Another bundled animation — pushed whenever a bound name changes. The view loads it,
+    /// rewinds, and keeps playing if it was playing.
+    Name(String),
     /// New playback rate multiplier — pushed whenever the bound speed signal changes.
     Speed(f64),
 }
@@ -58,16 +62,20 @@ pub enum LottiePatch {
 /// A native Lottie animation view. Configure with `.looping(false)` / `.autoplay(false)` and bind the
 /// playback rate reactively with `.speed(signal)`.
 pub struct Lottie {
-    name: String,
+    name: TextSource,
     looping: bool,
     autoplay: bool,
     speed: Reactive<f64>,
 }
 
 /// `lottie("hello")` — render the bundled `hello.json` Lottie animation (looping, autoplaying, 1× speed).
-pub fn lottie(name: impl Into<String>) -> Lottie {
+///
+/// `name` takes what [`label`](day_pieces::prelude::label) takes: a `&str` or `String`, a
+/// `Signal<String>`, or a closure. A reactive name swaps the animation live — the pattern behind
+/// a picker of bundled files.
+pub fn lottie<M>(name: impl IntoText<M>) -> Lottie {
     Lottie {
-        name: name.into(),
+        name: name.into_text(),
         looping: true,
         autoplay: true,
         speed: Reactive::Const(1.0),
@@ -97,8 +105,10 @@ impl Piece for Lottie {
     fn build(self, cx: &mut BuildCx) -> RNode {
         let speed = self.speed;
         let seed = speed.get_untracked();
+        let name = self.name;
+        let initial_name = name.initial();
         let props = LottieProps {
-            name: self.name,
+            name: initial_name.clone(),
             looping: self.looping,
             autoplay: self.autoplay,
             speed: seed,
@@ -122,6 +132,17 @@ impl Piece for Lottie {
                 with_tree(|t| t.patch(node, Box::new(LottiePatch::Speed(*v)), false));
             },
         );
+        // Same for the name: a static one is set once at build, a `Signal`/closure re-runs and
+        // pushes a `Name` patch whenever it changes (never for the value the view already shows).
+        if let TextSource::Dyn(read) = name {
+            bind_seeded(
+                initial_name,
+                move || read(),
+                move |n: &String| {
+                    with_tree(|t| t.patch(node, Box::new(LottiePatch::Name(n.clone())), false));
+                },
+            );
+        }
         node
     }
 }

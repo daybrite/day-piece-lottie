@@ -3,6 +3,11 @@
 
 app_title = Lottie Demo
 
+# The picker of bundled animations (resource/assets/*.json).
+animation = Animation
+anim_hello = Hello (square)
+anim_hamburger = Hamburger arrow
+
 # The facts panel: what src/model.rs reads out of resource/assets/hello.json.
 model_section = In the file
 model_name = Name

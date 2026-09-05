@@ -29,7 +29,9 @@ lottie("hello")                 // renders the bundled hello.json (looping, auto
 ```
 
 `lottie(name)` loads `name`(.json), bundled with the app: the iOS app bundle (`Bundle.main`) and
-the Android `assets/`. `.looping(false)` plays once; `.autoplay(false)` starts paused. `.speed(_)` sets
+the Android `assets/`. `name` is an `IntoText` like a label's: a `&str`, a `Signal<String>`, or a
+closure, and a reactive one pushes a `Name` patch that loads the other file into the same view,
+rewinds, and keeps playing (the Showcase's picker of sample animations). `.looping(false)` plays once; `.autoplay(false)` starts paused. `.speed(_)` sets
 the playback-rate multiplier (1.0 = normal, 2.0 = double, 0.5 = half) and takes any `IntoReactive<f64>`:
 a constant, a `Signal<f64>`, or a `Fn() -> f64`. A reactive value updates the native view's speed live
 (the showcase binds it to a slider). `Lottie` implements `Piece`, so `.id()/.a11y()/.frame()` chain via

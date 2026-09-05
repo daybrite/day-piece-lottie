@@ -7,7 +7,7 @@
 # The facts rows are the headless reader (src/model.rs) answering INSIDE the device build, from
 # the same file the native view plays. tests/model.rs asserts the same numbers on the host.
 name: lottie
-description: Load the bundled animation, read its file back on device, and drive playback speed.
+description: Read the bundled animations back on device, swap between them, and drive playback speed.
 flow:
   - wait_for: { id: lottie-view }
   - assert_visible: { id: lottie-view }
@@ -18,10 +18,23 @@ flow:
   - assert_text: { id: lottie-model-frames, text: "60 @ 30 fps" }
   - assert_text: { id: lottie-model-duration, text: "2.0 s" }
   - assert_text: { id: lottie-model-size, text: "200 × 200" }
-  - assert_text: { id: lottie-model-layers, text: "1 (shape)" }
+  - assert_text: { id: lottie-model-layers, text: "1 shape" }
   - assert_text: { id: lottie-model-issues, text: "0" }
   - assert_text: { id: lottie-speed-value, text: "1.00×" }
   - screenshot: lottie
+
+  # The picker: a bound name pushes a Name patch, the native view loads the other file, and the
+  # facts follow. HamburgerArrow.json (Airbnb's sample) records no composition name.
+  - select: { id: lottie-animation, index: 1 }
+  - assert_text: { id: lottie-model-frames, text: "180 @ 30 fps" }
+  - assert_text: { id: lottie-model-duration, text: "6.0 s" }
+  - assert_text: { id: lottie-model-size, text: "400 × 300" }
+  - assert_text: { id: lottie-model-layers, text: "1 null, 3 shape" }
+  - assert_text: { id: lottie-model-issues, text: "0" }
+  - pause: { secs: 1.0 }
+  - screenshot: lottie-hamburger
+  - select: { id: lottie-animation, index: 0 }
+  - assert_text: { id: lottie-model-frames, text: "60 @ 30 fps" }
 
   # The reactive speed path: slider → signal → a native Speed patch, and the readout follows.
   # The slider starts at 1.0, so the first move is a real change rather than a same-value set.

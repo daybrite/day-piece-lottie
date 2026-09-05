@@ -53,10 +53,20 @@ fn update(_backend: &mut Android, h: &AHandle, patch: &LottiePatch) {
                 &[JValue::Object(h.0.as_obj()), JValue::Float(*s as f32)],
             );
         }),
+        LottiePatch::Name(n) => with_env(|env| {
+            if let Ok(name) = env.new_string(n) {
+                let _ = env.dcall_static(
+                    LOTTIE_CLASS,
+                    "setAnimation",
+                    "(Landroid/view/View;Ljava/lang/String;)V",
+                    &[JValue::Object(h.0.as_obj()), JValue::Object(&name)],
+                );
+            }
+        }),
     }
 }
 
-// name/looping/autoplay are set once at build; only `speed` patches. `fill_measure` gives the uniform
+// looping/autoplay are set once at build; `name` and `speed` patch. `fill_measure` gives the uniform
 // growing-leaf sizing (which day-android's `measure: None` default would otherwise collapse).
 day_pieces::renderer!(day_android::RENDERERS, Android,
     kind: KIND, props: LottieProps, patch: LottiePatch, make: make, update: update,

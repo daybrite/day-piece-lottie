@@ -71,3 +71,27 @@ public func day_lottie_set_speed(_ viewPtr: UnsafeMutableRawPointer, _ speed: Do
         view.play()
     }
 }
+
+/// Load another bundled animation into an existing view (from a `Name` patch): the same
+/// path-first, name-fallback lookup as creation, then rewind, and resume if it was playing.
+/// The loop mode and speed stay as they were set.
+@_cdecl("day_lottie_set_animation")
+public func day_lottie_set_animation(
+    _ viewPtr: UnsafeMutableRawPointer,
+    _ namePtr: UnsafePointer<CChar>,
+    _ pathPtr: UnsafePointer<CChar>
+) {
+    let view = Unmanaged<LottieAnimationView>.fromOpaque(viewPtr).takeUnretainedValue()
+    let name = String(cString: namePtr)
+    let path = String(cString: pathPtr)
+    let wasPlaying = view.isAnimationPlaying
+    if !path.isEmpty, let animation = LottieAnimation.filepath(path) {
+        view.animation = animation
+    } else {
+        view.animation = LottieAnimation.named(name)
+    }
+    view.currentProgress = 0
+    if wasPlaying {
+        view.play()
+    }
+}
