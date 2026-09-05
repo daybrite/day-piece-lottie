@@ -29,6 +29,11 @@ const ANIMATIONS: [(&str, &str); 2] = [
     ),
 ];
 
+/// The picker's selection as an entry of [`ANIMATIONS`], clamped so a stale index never panics.
+fn animation(index: usize) -> (&'static str, &'static str) {
+    ANIMATIONS[index.min(ANIMATIONS.len() - 1)]
+}
+
 /// The window every entry point opens.
 pub fn window() -> day::WindowOptions {
     day::WindowOptions {
@@ -46,7 +51,7 @@ pub fn root() -> impl Piece {
     // Which bundled animation plays. The picker writes it; `lottie(closure)` reads it and
     // swaps the native view's animation whenever it changes; the facts panel reads it too.
     let selected = Signal::new(0usize);
-    let name = move || ANIMATIONS[selected.get().min(ANIMATIONS.len() - 1)].0.to_string();
+    let name = move || animation(selected.get()).0.to_string();
 
     // Playback rate, bound two ways: the slider (or a preset button) drives the signal, and
     // `.speed(speed)` pushes it to the native `LottieAnimationView` live.
@@ -115,8 +120,7 @@ pub fn root() -> impl Piece {
 /// crash at startup.
 fn facts(selected: Signal<usize>) -> impl Piece {
     let fact = move |pick: fn(&LottieModel) -> String| {
-        move || match LottieModel::parse(ANIMATIONS[selected.get().min(ANIMATIONS.len() - 1)].1)
-        {
+        move || match LottieModel::parse(animation(selected.get()).1) {
             Ok(model) => pick(&model),
             Err(e) => format!("{}: {e}", res::str::model_error().format()),
         }
