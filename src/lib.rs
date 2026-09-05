@@ -1,14 +1,21 @@
 // Copyright © The Daybrite Project
 // SPDX-License-Identifier: MPL-2.0
 
-//! day-piece-lottie — an EXTERNAL Day Piece rendering a Lottie animation, on iOS + Android only. It is
-//! the reference for a piece that pulls an EXTERNAL native package: the lottie-ios SwiftPM package on
-//! iOS (via the `[package.metadata.day.ios]` mechanism this piece introduces) and
-//! `com.airbnb.android:lottie` on Android. One Rust API, a native `LottieAnimationView` per platform,
-//! registered link-time into each backend's renderer slice without touching day.
+//! day-piece-lottie — Lottie animations for Day apps on iOS and Android.
 //!
-//! `lottie("name")` loads `name`(.json), bundled with the app (iOS: the app bundle; Android: assets),
-//! and plays it. It's a growing leaf, so constrain it with `.frame(w, h)`.
+//! An external Day Piece: one Rust API in front, a native `LottieAnimationView` behind it on each
+//! platform — the lottie-ios SwiftPM package on iOS, `com.airbnb.android:lottie` on Android —
+//! declared as `[package.metadata.day.*]` in Cargo.toml and fetched by `day build`. The renderers
+//! register link-time into each backend's slice; nothing in day knows this crate exists.
+//!
+//! `lottie("name")` plays `name.json`, bundled with the app (iOS: the app bundle; Android:
+//! assets). It's a growing leaf, so constrain it with `.frame(w, h)`.
+//!
+//! [`model`] is the headless half: read a document, report its frame rate, length, size, and
+//! layers, and verify it — on any host, with no view involved.
+
+pub mod model;
+pub use model::{Issue, LottieError, LottieModel};
 
 use day_core::{BuildCx, Flex, Piece, RNode, with_tree};
 use day_pieces::{IntoReactive, Reactive};

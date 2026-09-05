@@ -1,54 +1,68 @@
 [package]
 name = "day-piece-lottie"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+description = "Lottie animations for Day apps on iOS and Android"
+repository = "https://github.com/daybrite/day-piece-lottie"
+license = "MPL-2.0"
+# The day framework crates are not on crates.io yet; neither is this one. Apps depend on it
+# from git, exactly as they depend on day.
 publish = false
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-description.workspace = true
-repository.workspace = true
-license.workspace = true
 
-# A standalone Day Piece rendering a Lottie animation — iOS + Android only. Like the other pieces it
-# carries BOTH its cross-platform front-end (Rust) and its per-toolkit backend, without touching
-# any core day crate. It is the reference for a piece that pulls an EXTERNAL native package:
-#   iOS      — the lottie-ios SwiftPM package (via the new [package.metadata.day.ios] mechanism)
-#   Android  — com.airbnb.android:lottie (via the existing [package.metadata.day.android] mechanism)
-# See docs/extending.md + docs/lottie.md.
+# An EXTERNAL Day Piece (https://daybrite.dev/docs/extending): a cross-platform front end in Rust
+# (src/lib.rs, src/model.rs) plus a per-toolkit native backend, registered link-time into each
+# backend's renderer slice without touching any day crate. It is the reference for a piece that
+# pulls a third-party native package on each platform:
+#   iOS      — the lottie-ios SwiftPM package  ([package.metadata.day.ios] below)
+#   Android  — com.airbnb.android:lottie       ([package.metadata.day.android] below)
+#
+# Every day dependency names the BARE canonical URL — no branch, tag, or rev. Cargo unifies a git
+# dependency only when URL and ref match, so an app on `git = "…/day.git"` and a piece pinned to
+# a tag would carry two copies of every day crate; leaving the ref off lets the app's Cargo.lock
+# choose one revision for the whole graph. `demo/Cargo.lock` records the revision this release
+# was tested against, and `compat` below says which day minor that is.
 
 [features]
 uikit = ["dep:day-uikit", "dep:objc2", "dep:objc2-foundation", "dep:objc2-ui-kit"]
 mdc = ["dep:day-android"]
 
-# Backends this piece carries a native-renderer [features] entry for. `day` unions `<pkg>/<backend>`
-# into an app build (Tier A.2), so an app depends on this piece with a plain `{ workspace = true }` —
-# no per-backend feature fan-out in its own Cargo.toml. (Lottie is iOS/Android only.)
+[package.metadata.day]
+# The day minor this release is built and tested against. `day build` notes a mismatch.
+compat = "0.4"
+
+# Backends this piece carries a native-renderer [features] entry for. `day` unions
+# `<pkg>/<backend>` into an app build, so an app depends on this piece with a plain
+# `{ git = "…" }` line — no per-backend feature fan-out in its own Cargo.toml.
 [package.metadata.day.piece]
 backends = ["uikit", "mdc"]
 
 [dependencies]
-log = { workspace = true }
-day-spec = { workspace = true }
-day-core = { workspace = true }
-day-pieces = { workspace = true }
-day-reactive = { workspace = true }
-linkme = { workspace = true }
-day-uikit = { workspace = true, optional = true }
-day-android = { workspace = true, optional = true }
+day-spec = { git = "https://github.com/daybrite/day.git" }
+day-core = { git = "https://github.com/daybrite/day.git" }
+day-pieces = { git = "https://github.com/daybrite/day.git" }
+day-reactive = { git = "https://github.com/daybrite/day.git" }
+day-uikit = { git = "https://github.com/daybrite/day.git", optional = true }
+day-android = { git = "https://github.com/daybrite/day.git", optional = true }
+log = "0.4"
+linkme = "0.3"
+# The headless model reader (src/model.rs). Already in every Day app's graph through day-script.
+serde_json = "1"
 objc2 = { version = "0.6", optional = true }
 objc2-foundation = { version = "0.3", optional = true, features = ["NSString"] }
 objc2-ui-kit = { version = "0.3", optional = true, features = ["UIView", "UIResponder"] }
 
 [dev-dependencies]
-day-mock = { workspace = true }
+day-mock = { git = "https://github.com/daybrite/day.git" }
 
-# --- Android backend contribution (docs/extending.md) ---
+# --- Android backend contribution ---
 # The day CLI reads this from `cargo metadata` and folds it into the app's Gradle build.
 [package.metadata.day.android]
 java = ["android/java"]
 # Airbnb's Lottie for Android (on mavenCentral) — the native animation renderer.
 gradle-dependencies = ["com.airbnb.android:lottie:6.6.0"]
 
-# --- iOS backend contribution (docs/extending.md — the mechanism this piece introduces) ---
+# --- iOS backend contribution ---
 # `day build` (ios-uikit) reads this from `cargo metadata`, generates a local SwiftPM package that
 # depends on these `swift-packages` and compiles the `swift` shim sources, and links it into the app.
 [package.metadata.day.ios]
