@@ -54,7 +54,7 @@ jobs:
   # failed assertion or a blank capture. Screenshots are uploaded per target, and a tag build
   # attaches them to the release.
   demo:
-    uses: daybrite/actions/.github/workflows/build-day-app.yml@main
+    uses: daybrite/actions/.github/workflows/dayapp.yml@main
     secrets: inherit
     with:
       project-path: demo
@@ -73,7 +73,7 @@ jobs:
   # is the first word that a retag is due, so it runs on every push as well as the daily schedule.
   canary:
     if: github.event_name != 'pull_request'
-    uses: daybrite/actions/.github/workflows/build-day-app.yml@main
+    uses: daybrite/actions/.github/workflows/dayapp.yml@main
     secrets: inherit
     with:
       project-path: demo
