@@ -3,9 +3,13 @@ name: ci
 # Three questions, answered on every push and once a day:
 #   host        does the crate build, lint, and pass its host tests (the headless reader)?
 #   cross-check do the native halves compile for the targets they claim?
-#   demo        does the walkthrough pass on the iOS Simulator and the Android emulator, at the
-#               day revision demo/Cargo.lock pins?
-#   canary      …and at day's newest main? Allowed to fail; must be seen.
+#   demo        does the walkthrough pass on the iOS Simulator and the Android emulator,
+#               against day's newest main?
+#
+# No Cargo.lock is committed, here or in demo/: this crate tracks an unpublished framework by
+# its bare git URL, so every run resolves day afresh at the tip of main and proves the crate
+# against it. A red run after a day push is the signal, not a nuisance, and there is no pinned
+# lock for a local `day patch` table to rewrite and commit by accident.
 on:
   push:
     branches: ["**"]
@@ -26,10 +30,10 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo fmt --all -- --check
-      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo clippy --all-targets -- -D warnings
       # tests/model.rs, against tests/data/*.json: the same facts dayscript/lottie.yaml asserts
       # on device, asserted on the host in depth.
-      - run: cargo test --locked
+      - run: cargo test
 
   # The native halves compile for their targets. A link is not attempted here — the demo below
   # does that inside a real app — but a Swift-facing objc2 call that no longer type-checks, or a
@@ -47,20 +51,22 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - run: cargo clippy --locked --target ${{ matrix.target }} --features ${{ matrix.features }} -- -D warnings
+      - run: cargo clippy --target ${{ matrix.target }} --features ${{ matrix.features }} -- -D warnings
 
   # The proof: the demo app, driven end to end on both platforms by the shared Day workflow. It
-  # builds with the day revision demo/Cargo.lock pins, runs dayscript/lottie.yaml, and fails on a
-  # failed assertion or a blank capture. Screenshots are uploaded per target, and a tag build
-  # attaches them to the release.
+  # builds against day's newest main, runs dayscript/lottie.yaml, and fails on a failed assertion
+  # or a blank capture. Screenshots are uploaded per target, and a tag build attaches them to the
+  # release.
   demo:
     uses: daybrite/actions/.github/workflows/dayapp.yml@main
     secrets: inherit
     with:
       project-path: demo
       targets: ios-uikit, android-mdc
-      # The CLI that builds; the framework revision itself comes from demo/Cargo.lock.
+      # The CLI that builds, and the framework revision: with no lock committed the shared
+      # workflow resolves one fresh, and this moves every leg to the same tip-of-main revision.
       day-version: main
+      update-day-deps: true
       scripts: dayscript/lottie.yaml
       preflight-checks: fmt, clippy, test
       ios-devices: |
@@ -68,21 +74,3 @@ jobs:
       android-devices: |
         device=pixel_7,     os=36, orientation=portrait
 
-  # Tomorrow's day: the same run after `cargo update` moves the demo's lock to day's newest main.
-  # Not required to pass — the crate declares which day it was tested against — but a red canary
-  # is the first word that a retag is due, so it runs on every push as well as the daily schedule.
-  canary:
-    if: github.event_name != 'pull_request'
-    uses: daybrite/actions/.github/workflows/dayapp.yml@main
-    secrets: inherit
-    with:
-      project-path: demo
-      targets: ios-uikit, android-mdc
-      day-version: main
-      setup-command: cd demo && cargo update
-      scripts: dayscript/lottie.yaml
-      artifact-prefix: canary-
-      ios-devices: |
-        device=iPhone, orientation=portrait
-      android-devices: |
-        device=pixel_7,     os=36, orientation=portrait

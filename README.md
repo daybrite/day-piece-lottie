@@ -80,7 +80,7 @@ model.verify();          // Vec<Issue>: empty when a player will accept the file
 
 | This crate | Tested against day | Toolkits |
 |---|---|---|
-| 0.1 | 0.4 (`main` at the revision in `demo/Cargo.lock`) | `ios-uikit`, `android-mdc` |
+| 0.1 | 0.4 (`main`, at its newest revision on every CI run) | `ios-uikit`, `android-mdc` |
 
 Every day dependency names the bare canonical URL with no branch or tag, and your app's
 `Cargo.lock` picks one day revision for the whole graph. Cargo unifies a git dependency only when
