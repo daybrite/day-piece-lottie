@@ -58,7 +58,7 @@ day-mock = { git = "https://github.com/daybrite/day.git" }
 # --- Android backend contribution ---
 # The day CLI reads this from `cargo metadata` and folds it into the app's Gradle build.
 [package.metadata.day.android]
-java = ["android/java"]
+java = ["platform/android/java"]
 # Airbnb's Lottie for Android (on mavenCentral) — the native animation renderer.
 gradle-dependencies = ["com.airbnb.android:lottie:6.6.0"]
 
@@ -67,7 +67,7 @@ gradle-dependencies = ["com.airbnb.android:lottie:6.6.0"]
 # depends on these `swift-packages` and compiles the `swift` shim sources, and links it into the app.
 [package.metadata.day.ios]
 # Swift shim source dir(s), relative to this crate root — compiled into the app's Swift build.
-swift = ["ios/swift"]
+swift = ["platform/ios/swift"]
 # SwiftPM package dependencies. `products` are the library products to link from each package.
 swift-packages = [
     { url = "https://github.com/airbnb/lottie-ios", from = "4.5.0", products = ["Lottie"] },

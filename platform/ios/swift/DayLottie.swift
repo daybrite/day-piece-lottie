@@ -5,7 +5,7 @@
 // into the generated `DayPieces` SwiftPM package (docs/extending.md), which depends on the lottie-ios
 // package declared in this crate's [package.metadata.day.ios]. LottieAnimationView is a Swift class
 // with a non-@objc API, so Rust can't drive it directly (like it drives UIKit via objc2); this shim
-// exposes a flat C ABI (`@_cdecl`) that lib-uikit.rs calls. It is the iOS twin of android/java/DayLottie.java.
+// exposes a flat C ABI (`@_cdecl`) that lib-uikit.rs calls. It is the iOS twin of platform/android/java/DayLottie.java.
 
 import UIKit
 import Lottie

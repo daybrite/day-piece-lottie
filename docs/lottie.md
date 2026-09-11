@@ -48,7 +48,7 @@ appears only on those builds; the bundled `hello.json` (this repository's `demo/
 | control | `LottieAnimationView` (lottie-ios) | `LottieAnimationView` (lottie-android) |
 | dependency | SwiftPM `github.com/airbnb/lottie-ios` | Gradle `com.airbnb.android:lottie` |
 | declared in | `[package.metadata.day.ios].swift-packages` | `[package.metadata.day.android].gradle-dependencies` |
-| shim | `ios/swift/DayLottie.swift` (`@_cdecl`) | `android/java/…/DayLottie.java` (static method) |
+| shim | `platform/ios/swift/DayLottie.swift` (`@_cdecl`) | `platform/android/java/…/DayLottie.java` (static method) |
 
 Both shims wrap a `LottieAnimationView` behind a flat interface the piece's Rust calls; the iOS shim
 returns a `UIView` Rust wraps via `Retained::from_raw`, and the Android shim returns a `View` through JNI.

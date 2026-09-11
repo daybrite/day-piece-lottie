@@ -3,7 +3,7 @@
 
 // ---------------------------------------------------------------------------
 // UIKit: a LottieAnimationView from airbnb/lottie-ios, created by this crate's Swift shim
-// (ios/swift/DayLottie.swift → the generated DayPieces SwiftPM package). Rust calls the shim's flat
+// (platform/ios/swift/DayLottie.swift → the generated DayPieces SwiftPM package). Rust calls the shim's flat
 // C ABI and wraps the returned +1-retained UIView. The lottie-ios SwiftPM dependency is declared in
 // this crate's [package.metadata.day.ios]; `day build` links it into the app — zero .xcodeproj edits.
 // ---------------------------------------------------------------------------
