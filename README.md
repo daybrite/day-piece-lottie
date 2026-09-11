@@ -8,115 +8,135 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 [![ci](https://github.com/daybrite/day-piece-lottie/actions/workflows/ci.yml/badge.svg)](https://github.com/daybrite/day-piece-lottie/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MPL--2.0-green.svg)](LICENSE)
 
-Play Lottie animations in [Day](https://daybrite.dev) apps on iOS and Android, and read what is
-inside a Lottie file on any platform.
+## Overview and capabilities
 
-The piece wraps each platform's standard player, [lottie-ios](https://github.com/airbnb/lottie-ios)
-and [lottie-android](https://github.com/airbnb/lottie-android). Nothing is vendored: the crate
-declares those dependencies in its metadata, and `day build` fetches them through SwiftPM and
-Gradle as part of the normal build. It is also the reference for a piece that pulls third-party
-native libraries, if you are planning one of your own.
+`day-piece-lottie` plays bundled Lottie JSON animations in Day apps on iOS and Android.
+Lottie is an animation format commonly exported from motion-design tools.
 
-## Use it
+[Day](https://github.com/daybrite/day) is a Rust framework for building applications
+from a shared codebase using each platform's native UI toolkit. A **piece** is a UI
+component you place in a layout; a **part** provides a capability without drawing UI.
+Day's `day` command builds and packages the Rust code, resources, and native platform
+code together. `Cargo.toml` declares Rust dependencies; `Day.toml` configures the app
+and its target platforms.
 
-Add the dependency and build. `day` reads the piece's backend list from its metadata, so there is
-no per-backend feature to name in your app.
+The `lottie()` piece provides autoplay, looping, playback speed, and live switching
+between bundled animations. Its separate `LottieModel` API reads animation metadata
+and checks common document problems without creating a view, on any target.
+
+## Platform support and limitations
+
+| Use | Supported targets | Behavior |
+|---|---|---|
+| Animation playback | `ios-uikit`, `android-mdc` | Uses Airbnb's native Lottie player on each platform. |
+| Animation playback elsewhere | Desktop, HarmonyOS, web, mock | No renderer; Day displays a placeholder. Omit the animation or provide alternative UI. |
+| Metadata parsing and verification | All Rust targets supported by the crate | No native player or backend feature required. |
+
+Only the animation name and speed update reactively. Looping and autoplay are fixed
+when the piece is built; the public API has no seek, completion callback, or separate
+play/pause command. The player loads bundled JSON by name, not remote URLs.
+
+`verify()` checks a subset of document structure, not complete player compatibility.
+An empty issue list does not guarantee identical rendering on iOS and Android.
+On iOS, avoid driving speed updates faster than approximately one display frame:
+the shim preserves playback progress while changing speed, and rapid updates can
+observe invalid intermediate progress. A stepped speed control is appropriate.
+Android requires AndroidX (`android.useAndroidX=true` in a custom host project).
+
+## Add it to a Day project
+
+In an existing Day app's `Cargo.toml`, add:
 
 ```toml
 [dependencies]
 day-piece-lottie = { git = "https://github.com/daybrite/day-piece-lottie.git" }
 ```
 
+Put an animation at `resource/assets/hello.json`. Return the piece from your UI
+function or include it in a layout:
+
 ```rust
+use day::prelude::*;
 use day_piece_lottie::lottie;
 
-let speed = Signal::new(1.0);
-lottie("hello")                 // plays the bundled hello.json, looping and autoplaying
-    .speed(speed)               // playback rate; reactive, follows the signal live
-    .frame(220.0, 220.0)        // a growing leaf, so constrain it
-    .id("lottie-view")
+fn animation_panel() -> impl Piece {
+    let speed = Signal::new(1.0);
+    lottie("hello")
+        .speed(speed)
+        .looping(true)
+        .autoplay(true)
+        .frame(220.0, 220.0)
+}
 ```
 
-`lottie(name)` loads `name.json` from the app: the iOS bundle, or Android's `assets/`. Put the
-file under `resource/assets/` and `day build` bundles it (a `/` path such as
-`"lottie/pin-jump"` reaches a subfolder). `.looping(false)` plays once, `.autoplay(false)` starts
-paused, and `.speed(_)` takes a constant, a `Signal<f64>`, or a closure.
+A `Signal` is observable state; updating `speed` from a control changes the native
+player's rate. The defaults are looping, autoplay, and speed `1.0`. A string signal
+or closure passed as the name switches files live. Use `"lottie/hello"` for
+`resource/assets/lottie/hello.json`; leave off the `.json` extension.
 
-The name takes what `label` takes, so a reactive one swaps the animation live:
+Configure `ios-uikit` or `android-mdc` in the app's `Day.toml` and use its normal Day
+backend features (see [demo/Cargo.toml](demo/Cargo.toml)). Run
+`day build -p android-mdc` or `day launch -p ios-uikit` with the platform SDK installed.
+Day enables the piece's matching backend feature, bundles assets, and incorporates
+its SwiftPM/Gradle dependencies. A plain Cargo build does not perform that packaging.
+
+For an app with other targets, conditionally include the animation UI on iOS and
+Android, for example with `#[cfg(any(target_os = "ios", target_os = "android"))]`
+on the relevant UI function and matching call sites. Model reading needs no such gate:
 
 ```rust
-let files = ["hello", "pin-jump", "watermelon"];
-let selected = Signal::new(0usize);
-column((
-    picker(files, selected),
-    lottie(move || files[selected.get()].to_string()).frame(220.0, 220.0),
-))
+use day_piece_lottie::{LottieError, LottieModel};
+
+fn inspect_animation(json: &str) -> Result<(), LottieError> {
+    let model = LottieModel::parse(json)?;
+    println!("{} seconds, {} layers", model.duration_secs(), model.layers.len());
+    for issue in model.verify() {
+        println!("{issue}");
+    }
+    Ok(())
+}
 ```
 
-The piece has renderers for `ios-uikit` and `android-mdc`. On every other target it draws Day's
-placeholder for an unrendered piece, so gate the page that shows it:
+## Architecture and dependencies
 
-```rust
-#[cfg(any(target_os = "ios", target_os = "android"))]
-```
+[src/lib.rs](src/lib.rs) implements Day's `Piece` trait and creates a leaf with
+`LottieProps`. Bindings turn changed name/speed values into `LottiePatch` updates
+without replacing the view. Backend adapters in `src/lib-uikit.rs` and
+`src/lib-android.rs` register through `linkme` at link time.
 
-### Read the file
+On iOS, Rust calls a Swift shim through a C interface and owns the returned UIKit
+view. The shim resolves Day's bundled asset path and wraps `LottieAnimationView`.
+On Android, the Rust adapter calls a Java shim through JNI to create and update the
+Android view. Native sources live under [platform/](platform/); Day discovers them
+from package metadata, including the external native libraries.
 
-`model` is the headless half: it parses a Lottie document, reports its facts, and says what a
-player would refuse. It runs anywhere, with no view involved.
+| Dependency group | What it brings in |
+|---|---|
+| Shared Rust | `day-core`, `day-spec`, `day-pieces`, and `day-reactive` provide the tree, common types, builders, and bindings. `linkme` 0.3 registers renderers; `log` 0.4 provides diagnostics. |
+| Model reader | `serde_json` 1 parses the JSON document. |
+| iOS feature `uikit` | `day-uikit`, `objc2` 0.6, `objc2-foundation` 0.3, and `objc2-ui-kit` 0.3; SwiftPM adds the `Lottie` product from `airbnb/lottie-ios`, with a compatible version starting at 4.5.0. |
+| Android feature `mdc` | `day-android`; Gradle adds `com.airbnb.android:lottie:6.6.0` and its transitive Android dependencies. |
+| Tests | `day-mock` for host-side piece tests. |
 
-```rust
-use day_piece_lottie::LottieModel;
+[src/model.rs](src/model.rs) extracts timing, dimensions, layers, asset references,
+and markers while ignoring unrecognized fields. Verification catches missing
+frames, invalid frame rate or dimensions, empty layers, missing assets, unknown
+layer types, and invalid layer timing. It does not render or fully decode animation
+shapes. See [the implementation notes](docs/lottie.md) for the native boundary.
 
-let model = LottieModel::parse(include_str!("../resource/assets/hello.json"))?;
-model.frame_rate;        // 30.0
-model.frames();          // 60.0, out point minus in point
-model.duration_secs();   // 2.0
-model.layers.len();      // 1
-model.verify();          // Vec<Issue>: empty when a player will accept the file
-```
+## Compatibility and development
 
-## Compatibility
+This checkout requires Rust 1.89 or newer and declares compatibility with Day 0.4 in
+[Cargo.toml](Cargo.toml). The crate is consumed from Git, not crates.io. Its Day
+dependencies use `https://github.com/daybrite/day.git` without a branch, tag, or
+revision. Use the same source in your app and keep its `Cargo.lock` to record the
+resolved revisions. Mixing Day source URLs or refs can introduce duplicate framework
+crates and incompatible types.
 
-| This crate | Tested against day | Toolkits |
-|---|---|---|
-| 0.1 | 0.4 (`main`, at its newest revision on every CI run) | `ios-uikit`, `android-mdc` |
+For a local framework checkout, run `day patch --local ../day` from this repository
+(adjust the path when running from `demo/`). The [demo](demo/) depends on this crate
+by path and is a complete integration example.
 
-Every day dependency names the bare canonical URL with no branch or tag, and your app's
-`Cargo.lock` picks one day revision for the whole graph. Cargo unifies a git dependency only when
-URL and ref match, so a crate that pinned a tag would double every day crate in an app on `main`.
-`[package.metadata.day] compat = "0.4"` records the minor this release was tested against, and
-`day build` notes a mismatch before compiling.
-
-To build against a fork of day, patch the canonical URL once in your app and this crate follows:
-
-```sh
-day patch --git https://github.com/acme/day.git@acme
-```
-
-## Develop it
-
-```sh
-cargo test                                            # the headless reader, on the host
-cd demo && day launch -p ios-uikit --script dayscript/lottie.yaml
-cd demo && day launch -p android-mdc --script dayscript/lottie.yaml
-```
-
-The [demo app](demo/) depends on this crate by path and its walkthrough asserts the reader's
-answers on device; CI runs it on the iOS Simulator and the Android emulator on every push, and
-daily against day's newest `main`. To work against a local day checkout, `day patch --local
-../day` in either directory writes a gitignored patch table.
-
-Extending Day is documented at [daybrite.dev/docs/extending](https://daybrite.dev/docs/extending);
-[docs/lottie.md](docs/lottie.md) covers this piece's native halves.
-
-## Part of Day
-
-This crate is one piece of [Day](https://daybrite.dev), a Rust framework for building apps out of
-each platform's own widgets — AppKit, UIKit, Android's Material widgets, GTK 4, Qt 6, XAML, and
-ArkUI — from one codebase. When you write `button("Save")`, macOS shows an `NSButton` and Android
-shows a Material button. The framework also ships the tooling around the app: the `day` CLI, a VS
-Code extension, GitHub CI workflows, localization, accessibility, and dayscript automation.
-
-New to Day? Start at [daybrite.dev](https://daybrite.dev), or browse the
-[source repository](https://github.com/daybrite/day).
+Run `cargo test` for the model and host checks. From `demo/`, run
+`day launch -p ios-uikit --script dayscript/lottie.yaml` or the same command with
+`-p android-mdc`. Inspect playback on both platforms for the animations you ship.
