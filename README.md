@@ -28,7 +28,8 @@ and checks common document problems without creating a view, on any target.
 
 | Use | Supported targets | Behavior |
 |---|---|---|
-| Animation playback | `ios-uikit`, `android-mdc` | Uses Airbnb's native Lottie player on each platform. |
+| Animation playback | `ios-uikit` | [Lottie for iOS](https://github.com/airbnb/lottie-ios): SwiftPM `Lottie` product, compatible versions starting at 4.5.0. |
+| Animation playback | `android-mdc` | [Lottie for Android](https://github.com/airbnb/lottie-android): Gradle `com.airbnb.android:lottie:6.6.0`. |
 | Animation playback elsewhere | Desktop, HarmonyOS, web, mock | No renderer; Day displays a placeholder. Omit the animation or provide alternative UI. |
 | Metadata parsing and verification | All Rust targets supported by the crate | No native player or backend feature required. |
 
@@ -99,10 +100,14 @@ fn inspect_animation(json: &str) -> Result<(), LottieError> {
 
 ## Architecture and dependencies
 
+Dependency links below lead to upstream source repositories or official API
+documentation. Version requirements describe this checkout's [Cargo.toml](Cargo.toml),
+not necessarily the newest upstream releases.
+
 [src/lib.rs](src/lib.rs) implements Day's `Piece` trait and creates a leaf with
 `LottieProps`. Bindings turn changed name/speed values into `LottiePatch` updates
 without replacing the view. Backend adapters in `src/lib-uikit.rs` and
-`src/lib-android.rs` register through `linkme` at link time.
+`src/lib-android.rs` register through [linkme](https://github.com/dtolnay/linkme) at link time.
 
 On iOS, Rust calls a Swift shim through a C interface and owns the returned UIKit
 view. The shim resolves Day's bundled asset path and wraps `LottieAnimationView`.
@@ -112,11 +117,11 @@ from package metadata, including the external native libraries.
 
 | Dependency group | What it brings in |
 |---|---|
-| Shared Rust | `day-core`, `day-spec`, `day-pieces`, and `day-reactive` provide the tree, common types, builders, and bindings. `linkme` 0.3 registers renderers; `log` 0.4 provides diagnostics. |
-| Model reader | `serde_json` 1 parses the JSON document. |
-| iOS feature `uikit` | `day-uikit`, `objc2` 0.6, `objc2-foundation` 0.3, and `objc2-ui-kit` 0.3; SwiftPM adds the `Lottie` product from `airbnb/lottie-ios`, with a compatible version starting at 4.5.0. |
-| Android feature `mdc` | `day-android`; Gradle adds `com.airbnb.android:lottie:6.6.0` and its transitive Android dependencies. |
-| Tests | `day-mock` for host-side piece tests. |
+| Shared Rust | [day-core](https://github.com/daybrite/day/tree/main/crates/day-core), [day-spec](https://github.com/daybrite/day/tree/main/crates/day-spec), [day-pieces](https://github.com/daybrite/day/tree/main/crates/day-pieces), and [day-reactive](https://github.com/daybrite/day/tree/main/crates/day-reactive) provide the tree, common types, builders, and bindings. [linkme](https://github.com/dtolnay/linkme) 0.3 registers renderers; [log](https://github.com/rust-lang/log) 0.4 provides diagnostics. |
+| Model reader | [serde_json](https://github.com/serde-rs/json) 1 parses the JSON document. |
+| iOS feature `uikit` | [day-uikit](https://github.com/daybrite/day/tree/main/toolkits/day-uikit), [objc2](https://github.com/madsmtm/objc2) 0.6, [objc2-foundation](https://github.com/madsmtm/objc2) 0.3, and [objc2-ui-kit](https://github.com/madsmtm/objc2) 0.3; SwiftPM adds the `Lottie` product from [airbnb/lottie-ios](https://github.com/airbnb/lottie-ios), with a compatible version starting at 4.5.0. |
+| Android feature `mdc` | [day-android](https://github.com/daybrite/day/tree/main/toolkits/day-android); Gradle adds [com.airbnb.android:lottie:6.6.0](https://github.com/airbnb/lottie-android) and its transitive Android dependencies. |
+| Tests | [day-mock](https://github.com/daybrite/day/tree/main/crates/day-mock) for host-side piece tests. |
 
 [src/model.rs](src/model.rs) extracts timing, dimensions, layers, asset references,
 and markers while ignoring unrecognized fields. Verification catches missing
