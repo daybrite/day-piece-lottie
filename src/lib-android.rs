@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 // ---------------------------------------------------------------------------
-// Android: a LottieAnimationView from com.airbnb.android:lottie, created by this crate's OWN Java
+// Android: a LottieAnimationView from com.airbnb.android:lottie, created by this crate's Java
 // (src/DayLottie.java) — folded into the app's Gradle build via
 // [package.metadata.day.android] (which also declares the Gradle dependency), without touching
 // day-android. Rust calls its own class through the re-exported `jni`.

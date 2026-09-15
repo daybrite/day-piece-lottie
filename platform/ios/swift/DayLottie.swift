@@ -1,7 +1,7 @@
 // Copyright © The Daybrite Project
 // SPDX-License-Identifier: MPL-2.0
 
-// The day-piece-lottie crate's OWN iOS backend — a Swift shim over airbnb/lottie-ios. It's staged
+// The day-piece-lottie crate's iOS backend — a Swift shim over airbnb/lottie-ios. It's staged
 // into the generated `DayPieces` SwiftPM package (docs/extending.md), which depends on the lottie-ios
 // package declared in this crate's [package.metadata.day.ios]. LottieAnimationView is a Swift class
 // with a non-@objc API, so Rust can't drive it directly (like it drives UIKit via objc2); this shim
