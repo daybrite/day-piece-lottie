@@ -1,11 +1,11 @@
 // Copyright © The Daybrite Project
 // SPDX-License-Identifier: MPL-2.0
 
-//! Lottie Demo — the demo and on-device test app for `day-piece-lottie`.
+//! Lottie Demo: the demo and on-device test app for `day-piece-lottie`.
 //!
 //! One page: a picker of the bundled animations, the selected one playing, the facts the headless
 //! reader takes from its file, and a playback-speed control. Every element carries a stable id,
-//! so `dayscript/lottie.yaml` can assert all of it on the iOS Simulator and the Android emulator —
+//! so `dayscript/lottie.yaml` can assert all of it on the iOS Simulator and the Android emulator,
 //! which is how the crate's CI proves that [`LottieModel`] answers correctly inside a device
 //! build, and that a bound name swaps the native view's animation live.
 
@@ -100,7 +100,7 @@ pub fn root() -> impl Piece {
                 .spacing(8.0),
             ),
             // The same signal the slider writes, so a tap moves the slider and the readout
-            // together — and gives a script a deterministic value to assert.
+            // together, and gives a script a deterministic value to assert.
             row((
                 preset("\u{bd}\u{d7}", 0.5, "lottie-speed-half"),
                 preset("1\u{d7}", 1.0, "lottie-speed-one"),

@@ -3,7 +3,7 @@
 
 // ---------------------------------------------------------------------------
 // Android: a LottieAnimationView from com.airbnb.android:lottie, created by this crate's Java
-// (src/DayLottie.java) — folded into the app's Gradle build via
+// (src/DayLottie.java), folded into the app's Gradle build via
 // [package.metadata.day.android] (which also declares the Gradle dependency), without touching
 // day-android. Rust calls its own class through the re-exported `jni`.
 // ---------------------------------------------------------------------------
@@ -14,13 +14,13 @@ use day_android::jni::objects::JValue;
 use day_android::{AHandle, Android, with_env};
 use day_spec::NodeId;
 
-/// This piece's OWN Java class (src/DayLottie.java, on the app classpath at build).
+/// This piece's Java class (src/DayLottie.java, on the app classpath at build).
 const LOTTIE_CLASS: &str = "dev/daybrite/day/piece/lottie/DayLottie";
 
 fn make(_backend: &mut Android, p: &LottieProps, _id: NodeId) -> AHandle {
     with_env(|env| {
         // A Java throw (e.g. the Lottie dependency missing from the app build) must not
-        // panic inside realize — the panic unwinds the JNI up-call and aborts. Placeholder.
+        // panic inside realize: the panic unwinds the JNI up-call and aborts. Placeholder.
         let made = env.new_string(&p.name).ok().and_then(|name| {
             day_android::try_make_view_on(
                 env,

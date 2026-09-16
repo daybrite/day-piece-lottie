@@ -35,8 +35,8 @@ jobs:
       # on device, asserted on the host in depth.
       - run: cargo test
 
-  # The native halves compile for their targets. A link is not attempted here — the demo below
-  # does that inside a real app — but a Swift-facing objc2 call that no longer type-checks, or a
+  # The native halves compile for their targets. A link is not attempted here (the demo below
+  # does that inside a real app), but a Swift-facing objc2 call that no longer type-checks, or a
   # JNI signature drift in the Android arm, fails here in a minute rather than in the emulator.
   cross-check:
     strategy:

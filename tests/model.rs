@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! The headless reader, against the files under `tests/data/`: the animation the demo app ships,
-//! a richer one that exercises every arm of the reader, and four deliberately broken siblings.
+//! a richer one that exercises every arm of the reader, and four malformed siblings.
 
 use day_piece_lottie::model::{AssetKind, Issue, LayerKind, LottieError, LottieModel};
 

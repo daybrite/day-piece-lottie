@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! The headless half of the piece: read a Lottie document, report what is in it, and say what a
-//! player would refuse — with no toolkit in the loop.
+//! player would refuse, with no toolkit in the loop.
 //!
 //! [`lottie`](crate::lottie) hands a bundled file to the platform's `LottieAnimationView` and
 //! learns nothing about it. Everything here runs before that, or instead of it: an app can show
@@ -10,10 +10,10 @@
 //! and a test can assert what a file contains on any host, including the iOS and Android
 //! binaries a dayscript drives.
 //!
-//! The reader is deliberately shallow. It takes the top-level facts (version, name, frame rate,
-//! in and out points, size), each layer's identity and timing, the asset ids, and the markers, and
-//! ignores everything else — shapes, keyframes, expressions — so files written by a newer
-//! exporter parse. A document is small, so it is read whole from a string or a byte slice; the
+//! The reader is shallow. It takes the top-level facts (version, name, frame rate, in and out
+//! points, size), each layer's identity and timing, the asset ids, and the markers, and ignores
+//! everything else (shapes, keyframes, expressions), so files written by a newer exporter
+//! parse. A document is small, so it is read whole from a string or a byte slice; the
 //! app knows where its assets live and this crate does not.
 
 use std::fmt;

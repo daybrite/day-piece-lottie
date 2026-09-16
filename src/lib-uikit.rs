@@ -3,9 +3,10 @@
 
 // ---------------------------------------------------------------------------
 // UIKit: a LottieAnimationView from airbnb/lottie-ios, created by this crate's Swift shim
-// (platform/ios/swift/DayLottie.swift → the generated DayPieces SwiftPM package). Rust calls the shim's flat
-// C ABI and wraps the returned +1-retained UIView. The lottie-ios SwiftPM dependency is declared in
-// this crate's [package.metadata.day.ios]; `day build` links it into the app — zero .xcodeproj edits.
+// (platform/ios/swift/DayLottie.swift → the generated DayPieces SwiftPM package). Rust calls the
+// shim's flat C ABI and wraps the returned +1-retained UIView. The lottie-ios SwiftPM dependency
+// is declared in this crate's [package.metadata.day.ios]; `day build` links it into the app with
+// no .xcodeproj edits.
 // ---------------------------------------------------------------------------
 
 use super::*;
@@ -31,7 +32,7 @@ unsafe extern "C" {
 
 /// `lottie("hello")` means `resource/assets/hello.json`, which `day build` stages into the
 /// bundle's `assets/` (the same file the Android arm reads through AAssetManager). Resolve it to
-/// a path here: lottie-ios's by-name initializer searches the bundle ROOT, so without this an app
+/// a path here: lottie-ios's by-name initializer searches the bundle root, so without this an app
 /// would have to add a second copy of the file to its Xcode project by hand. An empty path leaves
 /// the shim on that by-name path, which is what a project doing so still uses.
 fn name_and_path(name: &str) -> (CString, CString) {

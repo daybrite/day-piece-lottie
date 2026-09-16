@@ -4,7 +4,7 @@
 #     day launch -p ios-uikit --script dayscript/lottie.yaml
 #     day launch -p android-mdc --script dayscript/lottie.yaml
 #
-# The facts rows are the headless reader (src/model.rs) answering INSIDE the device build, from
+# The facts rows are the headless reader (src/model.rs) answering inside the device build, from
 # the same file the native view plays. tests/model.rs asserts the same numbers on the host.
 name: lottie
 description: Read the bundled animations back on device, swap between them, and drive playback speed.

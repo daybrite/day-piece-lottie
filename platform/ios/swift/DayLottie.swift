@@ -1,7 +1,7 @@
 // Copyright © The Daybrite Project
 // SPDX-License-Identifier: MPL-2.0
 
-// The day-piece-lottie crate's iOS backend — a Swift shim over airbnb/lottie-ios. It's staged
+// The day-piece-lottie crate's iOS backend: a Swift shim over airbnb/lottie-ios. It's staged
 // into the generated `DayPieces` SwiftPM package (docs/extending.md), which depends on the lottie-ios
 // package declared in this crate's [package.metadata.day.ios]. LottieAnimationView is a Swift class
 // with a non-@objc API, so Rust can't drive it directly (like it drives UIKit via objc2); this shim
@@ -10,12 +10,12 @@
 import UIKit
 import Lottie
 
-/// Create a LottieAnimationView for the bundled animation and return it as a +1-retained pointer —
+/// Create a LottieAnimationView for the bundled animation and return it as a +1-retained pointer;
 /// the Rust caller takes ownership (wraps it as Retained<UIView>).
 ///
 /// `path` is the animation resolved from the project's `resource/assets/`, which `day build` stages
 /// into the bundle's `assets/` subdirectory. It is preferred because `LottieAnimationView(name:)`
-/// searches only the bundle ROOT, where Day stages nothing — an app relying on that would have to
+/// searches only the bundle root, where Day stages nothing; an app relying on that would have to
 /// add a second copy of the JSON to its Xcode project by hand. `name` remains the fallback for the
 /// projects that did exactly that.
 @_cdecl("day_lottie_new")
@@ -49,11 +49,11 @@ public func day_lottie_new(
 /// Assigning `animationSpeed` alone re-adds the in-flight animation, and with the Core Animation
 /// rendering engine + loop mode that restarts it at frame 0 (lottie-ios can't retime a running
 /// CAAnimation in place). So we snapshot the current progress and, if it was playing, resume from that
-/// exact frame with `play()` — which loops the FULL range from the current progress at the new speed
+/// exact frame with `play()`, which loops the full range from the current progress at the new speed
 /// (unlike `play(fromProgress:toProgress:)`, which would permanently shrink the loop to `[progress, 1]`).
 /// The result: the scrubber changes speed without the animation jumping back to the start.
 ///
-/// NOTE: this must NOT be called faster than ~one display frame — right after a re-add,
+/// NOTE: this must not be called faster than ~one display frame: right after a re-add,
 /// `presentation()` is briefly nil so `realtimeAnimationProgress` falls back to the model end frame
 /// (a bogus 1.0), which would then be written back and corrupt playback. day's `Slider` snaps to its
 /// `.step`, so a bound speed only changes at step crossings (never per drag frame), keeping calls

@@ -1,10 +1,10 @@
 // Copyright © The Daybrite Project
 // SPDX-License-Identifier: MPL-2.0
 
-//! day-piece-lottie — Lottie animations for Day apps on iOS and Android.
+//! day-piece-lottie: Lottie animations for Day apps on iOS and Android.
 //!
 //! An external Day Piece: one Rust API in front, a native `LottieAnimationView` behind it on each
-//! platform — the lottie-ios SwiftPM package on iOS, `com.airbnb.android:lottie` on Android —
+//! platform (the lottie-ios SwiftPM package on iOS, `com.airbnb.android:lottie` on Android),
 //! declared as `[package.metadata.day.*]` in Cargo.toml and fetched by `day build`. The renderers
 //! register link-time into each backend's slice; nothing in day knows this crate exists.
 //!
@@ -12,7 +12,7 @@
 //! assets). It's a growing leaf, so constrain it with `.frame(w, h)`.
 //!
 //! [`model`] is the headless half: read a document, report its frame rate, length, size, and
-//! layers, and verify it — on any host, with no view involved.
+//! layers, and verify it on any host, with no view involved.
 
 pub mod model;
 pub use model::{Issue, LottieError, LottieModel};
@@ -52,10 +52,10 @@ impl Default for LottieProps {
 /// Sparse reconcile patch: `name` and `speed` change after build (looping/autoplay are fixed).
 #[derive(Clone, Debug, PartialEq)]
 pub enum LottiePatch {
-    /// Another bundled animation — pushed whenever a bound name changes. The view loads it,
+    /// Another bundled animation, pushed whenever a bound name changes. The view loads it,
     /// rewinds, and keeps playing if it was playing.
     Name(String),
-    /// New playback rate multiplier — pushed whenever the bound speed signal changes.
+    /// New playback rate multiplier, pushed whenever the bound speed signal changes.
     Speed(f64),
 }
 
@@ -68,10 +68,11 @@ pub struct Lottie {
     speed: Reactive<f64>,
 }
 
-/// `lottie("hello")` — render the bundled `hello.json` Lottie animation (looping, autoplaying, 1× speed).
+/// `lottie("hello")` renders the bundled `hello.json` Lottie animation (looping, autoplaying,
+/// 1× speed).
 ///
 /// `name` takes what [`label`](day_pieces::prelude::label) takes: a `&str` or `String`, a
-/// `Signal<String>`, or a closure. A reactive name swaps the animation live — the pattern behind
+/// `Signal<String>`, or a closure. A reactive name swaps the animation live, the pattern behind
 /// a picker of bundled files.
 pub fn lottie<M>(name: impl IntoText<M>) -> Lottie {
     Lottie {
@@ -93,8 +94,8 @@ impl Lottie {
         self.autoplay = autoplay;
         self
     }
-    /// Playback rate multiplier — a constant, a `Signal<f64>`, or a `Fn() -> f64`. When it's reactive
-    /// the view's speed follows it live (e.g. bound to a slider). Default 1.0.
+    /// Playback rate multiplier: a constant, a `Signal<f64>`, or a `Fn() -> f64`. When it's
+    /// reactive the view's speed follows it live (e.g. bound to a slider). Default 1.0.
     pub fn speed<M>(mut self, speed: impl IntoReactive<f64, M>) -> Self {
         self.speed = speed.into_reactive();
         self
@@ -148,15 +149,15 @@ impl Piece for Lottie {
 }
 
 // ---------------------------------------------------------------------------
-// Per-toolkit native renderers — iOS + Android only. Each registers a `Renderer` link-time into its
-// backend's `RENDERERS` slice; `#[cfg]` gates each to its feature + target.
+// Per-toolkit native renderers, iOS + Android only. Each registers a `Renderer` link-time into
+// its backend's `RENDERERS` slice; `#[cfg]` gates each to its feature + target.
 // ---------------------------------------------------------------------------
 
 day_pieces::glue_modules!(uikit, mdc);
 
 // --- Typed builders, forwarded through `Decorated` (docs/api-style.md) ---
 
-/// [`Lottie`]'s own builders, reachable THROUGH a decoration (§5.2): `day_pieces::Decorated` forwards them
+/// [`Lottie`]'s own builders, reachable through a decoration (§5.2): `day_pieces::Decorated` forwards them
 /// to the piece it wraps, so generic modifiers and typed ones chain in any order.
 pub trait LottieBuilder: Sized {
     fn looping(self, looping: bool) -> Self;
