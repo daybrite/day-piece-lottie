@@ -85,6 +85,9 @@ jobs:
       project-path: demo
       targets: macos-appkit, linux-gtk, linux-qt, windows-xaml, ios-uikit, android-mdc,
         harmony-arkui, web-dom
+      # Edge and the WebView2 SDK do not supply the runtime used by the Windows player.
+      target-packages: |
+        windows-xaml: webview2-runtime
       # The CLI that builds, and the framework revision: with no lock committed the shared
       # workflow resolves one fresh, and this moves every leg to the same tip-of-main revision.
       day-version: main
