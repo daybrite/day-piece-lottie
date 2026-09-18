@@ -17,8 +17,17 @@
 pub mod model;
 pub use model::{Issue, LottieError, LottieModel};
 
-use day_core::{BuildCx, Flex, Piece, RNode, with_tree};
+/// The web-view arm (src/web.rs): every backend without a native player.
+#[cfg(feature = "web")]
+mod web;
+
+use day_core::{BuildCx, Piece, RNode};
+// The native arms' own imports: the web-view arm (src/web.rs) builds a subtree rather than a
+// leaf, and patches through JavaScript rather than through the tree.
+#[cfg(not(feature = "web"))]
+use day_core::{Flex, with_tree};
 use day_pieces::{IntoReactive, IntoText, Reactive, TextSource};
+#[cfg(not(feature = "web"))]
 use day_reactive::bind_seeded;
 
 pub const KIND: &str = "day.piece.lottie";
@@ -104,48 +113,62 @@ impl Lottie {
 
 impl Piece for Lottie {
     fn build(self, cx: &mut BuildCx) -> RNode {
-        let speed = self.speed;
-        let seed = speed.get_untracked();
-        let name = self.name;
-        let initial_name = name.initial();
-        let props = LottieProps {
-            name: initial_name.clone(),
-            looping: self.looping,
-            autoplay: self.autoplay,
-            speed: seed,
-        };
-        // A Lottie animation fills the space it's offered (constrain via `.frame(w, h)`).
-        let node = cx.leaf(
-            KIND,
-            &props,
-            Flex {
-                grow_w: true,
-                grow_h: true,
-                ..Default::default()
-            },
-        );
-        // A `Const` speed reads the same value forever, so this seeds once and never patches; a
-        // `Signal`/`Fn` speed re-runs and pushes a `Speed` patch on every change.
-        bind_seeded(
-            seed,
-            move || speed.get(),
-            move |v: &f64| {
-                with_tree(|t| t.patch(node, Box::new(LottiePatch::Speed(*v)), false));
-            },
-        );
-        // Same for the name: a static one is set once at build, a `Signal`/closure re-runs and
-        // pushes a `Name` patch whenever it changes (never for the value the view already shows).
-        if let TextSource::Dyn(read) = name {
-            bind_seeded(
-                initial_name,
-                move || read(),
-                move |n: &String| {
-                    with_tree(|t| t.patch(node, Box::new(LottiePatch::Name(n.clone())), false));
-                },
-            );
-        }
-        node
+        build_view(self, cx)
     }
+}
+
+/// Backends with no native Lottie player compose a web view over lottie-web instead
+/// (src/web.rs). The front end above this line is the whole API either way.
+#[cfg(feature = "web")]
+fn build_view(l: Lottie, cx: &mut BuildCx) -> RNode {
+    web::build(cx, l.name, l.looping, l.autoplay, l.speed)
+}
+
+/// The native arm: one leaf carrying [`LottieProps`], which each renderer realizes as its
+/// platform's own `LottieAnimationView`, plus the two bindings that patch it afterwards.
+#[cfg(not(feature = "web"))]
+fn build_view(l: Lottie, cx: &mut BuildCx) -> RNode {
+    let speed = l.speed;
+    let seed = speed.get_untracked();
+    let name = l.name;
+    let initial_name = name.initial();
+    let props = LottieProps {
+        name: initial_name.clone(),
+        looping: l.looping,
+        autoplay: l.autoplay,
+        speed: seed,
+    };
+    // A Lottie animation fills the space it's offered (constrain via `.frame(w, h)`).
+    let node = cx.leaf(
+        KIND,
+        &props,
+        Flex {
+            grow_w: true,
+            grow_h: true,
+            ..Default::default()
+        },
+    );
+    // A `Const` speed reads the same value forever, so this seeds once and never patches; a
+    // `Signal`/`Fn` speed re-runs and pushes a `Speed` patch on every change.
+    bind_seeded(
+        seed,
+        move || speed.get(),
+        move |v: &f64| {
+            with_tree(|t| t.patch(node, Box::new(LottiePatch::Speed(*v)), false));
+        },
+    );
+    // Same for the name: a static one is set once at build, a `Signal`/closure re-runs and
+    // pushes a `Name` patch whenever it changes (never for the value the view already shows).
+    if let TextSource::Dyn(read) = name {
+        bind_seeded(
+            initial_name,
+            move || read(),
+            move |n: &String| {
+                with_tree(|t| t.patch(node, Box::new(LottiePatch::Name(n.clone())), false));
+            },
+        );
+    }
+    node
 }
 
 // ---------------------------------------------------------------------------

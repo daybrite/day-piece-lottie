@@ -1,0 +1,125 @@
+# The gallery walkthrough (https://daybrite.dev/docs/dayscript): every animation the app bundles,
+# opened by its own route, given a moment to play, and captured under that same name. CI runs it
+# on all eight primary platform-toolkit pairs, and the same command runs it here:
+#
+#     day launch -p web-dom --script dayscript/gallery.yaml
+#
+# `navigate:` addresses the routes `day::routes!` declares in src/lib.rs — the names that are also
+# the URL hash on web-dom (…/#pin-jump) and the id of the view on each page, so one name opens the
+# page, finds the animation and files the screenshot.
+#
+# Each capture carries a `title:`, which is what makes it a curated row in the project website's
+# gallery (`day screenshot index` carries it into gallery.json, and daysite publishes that).
+#
+# The summary line under each animation is the headless reader on the file that is playing above
+# it, so asserting it is how this script proves the route opened the animation it names rather
+# than any animation at all. Each page pauses before its capture: a frame 0 is often an empty
+# stage, and a screenshot of one would be a blank picture that still passed.
+name: gallery
+description: Open every bundled animation by its route, let it play, and capture it.
+flow:
+  - wait_for: { id: nav }
+
+  # The demo's own two files, hand-written for the walkthrough above.
+  - navigate: { route: hello }
+  - wait_for: { id: hello }
+  - assert_text: { id: lottie-example-title, text: "Hello (square)" }
+  - assert_text: { id: lottie-summary, text: "200 × 200 · 60 frames @ 30 fps · 2.0 s · 1 shape" }
+  - pause: { secs: 1.0 }
+  # What a screenshot cannot assert: that the player has an animation rather than an empty stage.
+  # The page writes its own state into the body, and on the backends that evaluate JavaScript
+  # this reads it back. Skipped where there is nothing to ask: iOS and Android play the file with
+  # Airbnb's own renderer, and gtk and web-dom have no evaluation arm (they fetch instead, so a
+  # failure there shows up in the capture).
+  - web_eval:
+      id: hello
+      script: "document.body.getAttribute('data-day-lottie')"
+      text: playing
+      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom]
+  - screenshot: { name: hello, title: "Hello (square)" }
+
+  - navigate: { route: hamburger-arrow }
+  - wait_for: { id: hamburger-arrow }
+  - assert_text: { id: lottie-example-title, text: "Hamburger arrow" }
+  - assert_text: { id: lottie-summary, text: "400 × 300 · 180 frames @ 30 fps · 6.0 s · 1 null, 3 shape" }
+  - pause: { secs: 1.0 }
+  - screenshot: { name: hamburger-arrow, title: "Hamburger arrow" }
+
+  # Airbnb's samples, vendored under resource/assets/lottie/ (the README beside them records what
+  # each one is and under what licence it arrived).
+  - navigate: { route: lottie-logo1 }
+  - wait_for: { id: lottie-logo1 }
+  - assert_text: { id: lottie-example-title, text: "Lottie logo" }
+  - assert_text: { id: lottie-summary, text: "375 × 667 · 179 frames @ 30 fps · 6.0 s · 3 solid, 45 shape" }
+  - pause: { secs: 2.0 }
+  - screenshot: { name: lottie-logo1, title: "Lottie logo" }
+
+  - navigate: { route: lottie-logo1-masked }
+  - wait_for: { id: lottie-logo1-masked }
+  - assert_text: { id: lottie-example-title, text: "Lottie logo, masked" }
+  - assert_text: { id: lottie-summary, text: "375 × 667 · 179 frames @ 30 fps · 6.0 s · 3 null, 46 shape" }
+  - pause: { secs: 2.0 }
+  - screenshot: { name: lottie-logo1-masked, title: "Lottie logo, masked" }
+
+  - navigate: { route: lottie-logo2 }
+  - wait_for: { id: lottie-logo2 }
+  - assert_text: { id: lottie-example-title, text: "Lottie logo, second cut" }
+  - assert_text: { id: lottie-summary, text: "281 × 500 · 378 frames @ 30 fps · 12.6 s · 9 solid, 65 shape" }
+  - pause: { secs: 3.0 }
+  - screenshot: { name: lottie-logo2, title: "Lottie logo, second cut" }
+
+  - navigate: { route: nine-squares-alboardman }
+  - wait_for: { id: nine-squares-alboardman }
+  - assert_text: { id: lottie-example-title, text: "Nine squares" }
+  - assert_text: { id: lottie-summary, text: "180 × 180 · 176 frames @ 30 fps · 5.9 s · 2 null, 18 shape, 1 solid" }
+  - pause: { secs: 2.0 }
+  - screenshot: { name: nine-squares-alboardman, title: "Nine squares" }
+
+  - navigate: { route: motioncorpse-jrcanest }
+  - wait_for: { id: motioncorpse-jrcanest }
+  - assert_text: { id: lottie-example-title, text: "Motion corpse" }
+  - assert_text: { id: lottie-summary, text: "1920 × 1080 · 82 frames @ 24 fps · 3.4 s · 4 solid, 16 shape, 6 null" }
+  - pause: { secs: 1.5 }
+  - screenshot: { name: motioncorpse-jrcanest, title: "Motion corpse" }
+
+  - navigate: { route: pin-jump }
+  - wait_for: { id: pin-jump }
+  - assert_text: { id: lottie-example-title, text: "Pin jump" }
+  - assert_text: { id: lottie-summary, text: "150 × 150 · 93 frames @ 30 fps · 3.1 s · 1 null, 8 shape" }
+  - pause: { secs: 1.5 }
+  # The same check for a name with a directory in it (`lottie/pin-jump`), which every arm has to
+  # resolve: the iOS bundle, the Android asset manager, and the player page.
+  - web_eval:
+      id: pin-jump
+      script: "document.body.getAttribute('data-day-lottie')"
+      text: playing
+      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom]
+  - screenshot: { name: pin-jump, title: "Pin jump" }
+
+  - navigate: { route: twitter-heart }
+  - wait_for: { id: twitter-heart }
+  - assert_text: { id: lottie-example-title, text: "Heart" }
+  - assert_text: { id: lottie-summary, text: "100 × 100 · 116 frames @ 60 fps · 1.9 s · 18 shape" }
+  - pause: { secs: 1.0 }
+  - screenshot: { name: twitter-heart, title: "Heart" }
+
+  - navigate: { route: boat-loader }
+  - wait_for: { id: boat-loader }
+  - assert_text: { id: lottie-example-title, text: "Boat loader" }
+  - assert_text: { id: lottie-summary, text: "1334 × 1600 · 888 frames @ 60 fps · 14.8 s · 4 precomp, 1 shape" }
+  - pause: { secs: 2.0 }
+  - screenshot: { name: boat-loader, title: "Boat loader" }
+
+  - navigate: { route: icon-transitions }
+  - wait_for: { id: icon-transitions }
+  - assert_text: { id: lottie-example-title, text: "Icon transitions" }
+  - assert_text: { id: lottie-summary, text: "140 × 140 · 158 frames @ 30 fps · 5.3 s · 2 solid, 11 shape" }
+  - pause: { secs: 1.5 }
+  - screenshot: { name: icon-transitions, title: "Icon transitions" }
+
+  - navigate: { route: switch }
+  - wait_for: { id: switch }
+  - assert_text: { id: lottie-example-title, text: "Switch" }
+  - assert_text: { id: lottie-summary, text: "100 × 100 · 150 frames @ 60 fps · 2.5 s · 5 shape" }
+  - pause: { secs: 1.0 }
+  - screenshot: { name: switch, title: "Switch" }

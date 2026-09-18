@@ -10,8 +10,8 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 ## Overview and capabilities
 
-`day-piece-lottie` plays bundled Lottie JSON animations in Day apps on iOS and Android.
-Lottie is an animation format commonly exported from motion-design tools.
+`day-piece-lottie` plays bundled Lottie JSON animations in Day apps, on every platform Day
+builds for. Lottie is an animation format commonly exported from motion-design tools.
 
 [Day](https://github.com/daybrite/day) is a Rust framework for building applications
 from a shared codebase using each platform's native UI toolkit. A **piece** is a UI
@@ -24,18 +24,40 @@ The `lottie()` piece provides autoplay, looping, playback speed, and live switch
 between bundled animations. Its separate `LottieModel` API reads animation metadata
 and checks common document problems without creating a view, on any target.
 
+The demo app plays twelve animations, one per page:
+**[open it in a browser](https://daybrite.github.io/day-piece-lottie/webapp/)**, or browse
+[what it looks like on each platform](https://daybrite.github.io/day-piece-lottie/gallery/)
+— screenshots CI takes on all eight primary platform-toolkit pairs on every push.
+
+<p align="center">
+  <kbd><img src="https://daybrite.github.io/day-piece-lottie/gallery/web-dom/default/lottie-logo1.png" width="760" alt="The demo playing Airbnb's Lottie logo animation, one route per animation in the sidebar"></kbd>
+</p>
+
 ## Platform support and limitations
+
+Two renderers sit behind one API. iOS and Android have Airbnb's own players and this crate
+binds them. Every other backend plays the same file with
+[lottie-web](https://github.com/airbnb/lottie-web), bundled with this crate and shown in a web
+view through [day-piece-webview](https://github.com/daybrite/day-piece-webview), which composes
+the piece out of an engine each platform already ships.
 
 | Use | Supported targets | Behavior |
 |---|---|---|
 | Animation playback | `ios-uikit` | [Lottie for iOS](https://github.com/airbnb/lottie-ios): SwiftPM `Lottie` product, compatible versions starting at 4.5.0. |
 | Animation playback | `android-mdc` | [Lottie for Android](https://github.com/airbnb/lottie-android): Gradle `com.airbnb.android:lottie:6.6.0`. |
-| Animation playback elsewhere | Desktop, HarmonyOS, web, mock | No renderer; Day displays a placeholder. Omit the animation or provide alternative UI. |
+| Animation playback | `macos-appkit`, `macos-qt`, `linux-gtk`, `linux-qt`, `windows-xaml`, `windows-qt`, `harmony-arkui`, `web-dom` | lottie-web 5.13.0 in a web view: WebKit, WebKitGTK, QtWebEngine, WebView2, ArkWeb, or the browser's own frame. |
+| Animation playback | `macos-gtk`, `windows-gtk` | No WebKitGTK on those hosts, so there is no engine to host the player and the view realizes Day's placeholder. |
 | Metadata parsing and verification | All Rust targets supported by the crate | No native player or backend feature required. |
 
 Only the animation name and speed update reactively. Looping and autoplay are fixed
 when the piece is built; the public API has no seek, completion callback, or separate
 play/pause command. The player loads bundled JSON by name, not remote URLs.
+
+On the web-view backends, a name or speed that changes after the view is built reaches the
+player through JavaScript evaluation, which `linux-gtk` and `web-dom` do not have yet: there the
+animation and the rate are what the view was built with, and a change takes effect the next time
+the piece is built, which navigating to another page does anyway. A first frame also arrives a
+moment later than a native player's, because the engine loads the page first.
 
 `verify()` checks a subset of document structure, not complete player compatibility.
 An empty issue list does not guarantee identical rendering on iOS and Android.
@@ -75,15 +97,15 @@ player's rate. The defaults are looping, autoplay, and speed `1.0`. A string sig
 or closure passed as the name switches files live. Use `"lottie/hello"` for
 `resource/assets/lottie/hello.json`; leave off the `.json` extension.
 
-Configure `ios-uikit` or `android-mdc` in the app's `Day.toml` and use its normal Day
-backend features (see [demo/Cargo.toml](demo/Cargo.toml)). Run
-`day build -p android-mdc` or `day launch -p ios-uikit` with the platform SDK installed.
-Day enables the piece's matching backend feature, bundles assets, and incorporates
-its SwiftPM/Gradle dependencies. A plain Cargo build does not perform that packaging.
+List the targets in the app's `Day.toml` and give the app the matching Day backend
+features (see [demo/Cargo.toml](demo/Cargo.toml)). Run `day build -p android-mdc` or
+`day launch -p macos-appkit` with that platform's SDK installed. Day enables the piece's
+matching backend feature, bundles the animation and the player's own web assets, and
+incorporates its SwiftPM and Gradle dependencies. A plain Cargo build does not perform that
+packaging.
 
-For an app with other targets, conditionally include the animation UI on iOS and
-Android, for example with `#[cfg(any(target_os = "ios", target_os = "android"))]`
-on the relevant UI function and matching call sites. Model reading needs no such gate:
+The same call site works on every target, so an app needs no `cfg` around its animation. Model
+reading needs no backend at all:
 
 ```rust
 use day_piece_lottie::{LottieError, LottieModel};
@@ -115,10 +137,20 @@ On Android, the Rust adapter calls a Java shim through JNI to create and update 
 Android view. Native sources live under [platform/](platform/); Day discovers them
 from package metadata, including the external native libraries.
 
+Everywhere else, [src/web.rs](src/web.rs) builds a `day-piece-webview` inline site instead of a
+leaf: the page in [web/](web/) and lottie-web beside it, staged into the app's bundle by
+`[package.metadata.day.piece].assets` and opened as a local file. How the animation reaches that
+page depends on the engine. Where the backend evaluates JavaScript, this side reads the file
+through Day's resource opener and hands the page its text, which is also the only way that works
+on WebKit — a page opened from a `file:` URL may not read a file with `XMLHttpRequest`, not even
+one beside it. WebKitGTK has no evaluation arm yet, so its page is told the name and fetches the
+file itself, as does the browser frame on `web-dom`, where the asset tree is served over http.
+
 | Dependency group | What it brings in |
 |---|---|
 | Shared Rust | [day-core](https://github.com/daybrite/day/tree/main/crates/day-core), [day-spec](https://github.com/daybrite/day/tree/main/crates/day-spec), [day-pieces](https://github.com/daybrite/day/tree/main/crates/day-pieces), and [day-reactive](https://github.com/daybrite/day/tree/main/crates/day-reactive) provide the tree, common types, builders, and bindings. [linkme](https://github.com/dtolnay/linkme) 0.3 registers renderers; [log](https://github.com/rust-lang/log) 0.4 provides diagnostics. |
 | Model reader | [serde_json](https://github.com/serde-rs/json) 1 parses the JSON document. |
+| Web-view backends | [day-piece-webview](https://github.com/daybrite/day-piece-webview) binds each platform's engine; [day-async](https://github.com/daybrite/day/tree/main/crates/day-async) times the wait for the player page to load. [lottie-web](https://github.com/airbnb/lottie-web) 5.13.0 (MIT) is vendored under [web/](web/) with its licence and provenance. |
 | iOS feature `uikit` | [day-uikit](https://github.com/daybrite/day/tree/main/toolkits/day-uikit), [objc2](https://github.com/madsmtm/objc2) 0.6, [objc2-foundation](https://github.com/madsmtm/objc2) 0.3, and [objc2-ui-kit](https://github.com/madsmtm/objc2) 0.3; SwiftPM adds the `Lottie` product from [airbnb/lottie-ios](https://github.com/airbnb/lottie-ios), with a compatible version starting at 4.5.0. |
 | Android feature `mdc` | [day-android](https://github.com/daybrite/day/tree/main/toolkits/day-android); Gradle adds [com.airbnb.android:lottie:6.6.0](https://github.com/airbnb/lottie-android) and its transitive Android dependencies. |
 | Tests | [day-mock](https://github.com/daybrite/day/tree/main/crates/day-mock) for host-side piece tests. |
@@ -143,5 +175,8 @@ For a local framework checkout, run `day patch --local ../day` from this reposit
 by path and is a complete integration example.
 
 Run `cargo test` for the model and host checks. From `demo/`, run
-`day launch -p ios-uikit --script dayscript/lottie.yaml` or the same command with
-`-p android-mdc`. Inspect playback on both platforms for the animations you ship.
+`day launch -p macos-appkit --script dayscript/lottie.yaml --script dayscript/gallery.yaml`,
+or the same command with `-p ios-uikit`, `-p android-mdc`, `-p web-dom`, or any other target in
+[demo/Day.toml](demo/Day.toml). CI runs both scripts on all eight primary platform-toolkit
+pairs, publishes the captures to the project website, and deploys the web build beside them.
+Inspect playback on the platforms you ship for the animations you ship.

@@ -3,7 +3,7 @@ name: ci
 # Three questions, answered on every push and once a day:
 #   host        does the crate build, lint, and pass its host tests (the headless reader)?
 #   cross-check do the native halves compile for the targets they claim?
-#   demo        does the walkthrough pass on the iOS Simulator and the Android emulator,
+#   demo        do the two walkthroughs pass on all eight primary platform-toolkit pairs,
 #               against day's newest main?
 #
 # No Cargo.lock is committed, here or in demo/: this crate tracks an unpublished framework by
@@ -22,6 +22,8 @@ on:
 
 permissions:
   contents: write # release-asset upload on tag builds
+  pages: write    # the project website + web build → GitHub Pages (deploy-web)
+  id-token: write # deploy-pages OIDC token (deploy-web)
 
 jobs:
   host:
@@ -34,10 +36,17 @@ jobs:
       # tests/model.rs, against tests/data/*.json: the same facts dayscript/lottie.yaml asserts
       # on device, asserted on the host in depth.
       - run: cargo test
+      # The web arm's own unit tests (src/web.rs). `web` without a backend compiles the shared
+      # half of all six web-view backends, which is where the page's URL and the calls into it
+      # are built, and needs no engine to check them.
+      - run: cargo clippy --all-targets --features web -- -D warnings
+      - run: cargo test --features web
 
   # The native halves compile for their targets. A link is not attempted here (the demo below
   # does that inside a real app), but a Swift-facing objc2 call that no longer type-checks, or a
   # JNI signature drift in the Android arm, fails here in a minute rather than in the emulator.
+  # The web arm has no leg here: a wasm32 build needs the getrandom backend and the JS shim that
+  # `day build` supplies, so it is the demo's web-dom leg below that compiles and runs it.
   cross-check:
     strategy:
       fail-fast: false
@@ -45,6 +54,8 @@ jobs:
         include:
           - { os: macos-15, target: aarch64-apple-ios-sim, features: uikit }
           - { os: ubuntu-latest, target: aarch64-linux-android, features: mdc }
+          # The web arm, through the one of its six backends that needs no system libraries.
+          - { os: macos-15, target: aarch64-apple-darwin, features: appkit }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -53,24 +64,40 @@ jobs:
           targets: ${{ matrix.target }}
       - run: cargo clippy --target ${{ matrix.target }} --features ${{ matrix.features }} -- -D warnings
 
-  # The proof: the demo app, driven end to end on both platforms by the shared Day workflow. It
-  # builds against day's newest main, runs dayscript/lottie.yaml, and fails on a failed assertion
-  # or a blank capture. Screenshots are uploaded per target, and a tag build attaches them to the
-  # release.
+  # The proof: the demo app, driven end to end on every target by the shared Day workflow. It
+  # builds against day's newest main, runs both dayscripts, and fails on a failed assertion or a
+  # blank capture. Captures are uploaded per target, and a tag build attaches them to the release.
+  #
+  # Two scripts: lottie.yaml drives the playground — the reader's facts for three files, a picker
+  # that swaps the running view's animation, and the speed control — and gallery.yaml opens every
+  # bundled animation by its own route and captures it under that name.
+  #
+  # All eight primary platform-toolkit pairs, because the player differs by platform: iOS and
+  # Android hand the file to Airbnb's renderer, and the other six play it with lottie-web inside
+  # a web view, which means six different engines and six different asset roots to resolve the
+  # file through. The four `extra` pairs (macos-gtk, macos-qt, windows-gtk, windows-qt) are
+  # declared in demo/Day.toml and buildable by hand; macos-gtk and windows-gtk have no WebKitGTK
+  # to host the player at all, so the view reports Unsupported there.
   demo:
     uses: daybrite/actions/.github/workflows/dayapp.yml@main
     secrets: inherit
     with:
       project-path: demo
-      targets: ios-uikit, android-mdc
+      targets: macos-appkit, linux-gtk, linux-qt, windows-xaml, ios-uikit, android-mdc,
+        harmony-arkui, web-dom
       # The CLI that builds, and the framework revision: with no lock committed the shared
       # workflow resolves one fresh, and this moves every leg to the same tip-of-main revision.
       day-version: main
       update-day-deps: true
-      scripts: dayscript/lottie.yaml
+      scripts: dayscript/lottie.yaml dayscript/gallery.yaml
       preflight-checks: fmt, clippy, test
+      # Publish on every push to main. demo/website/site.toml is the opt-in for the project
+      # website, so what deploys is the daysite build: a landing page, the gallery of the
+      # captures gallery.yaml just took, and the web build under /webapp/. The crate's README
+      # links to both, which is why it carries no images of its own. Without that file this
+      # would deploy the bare web dist to the Pages root instead.
+      deploy-web: true
       ios-devices: |
         device=iPhone, orientation=portrait
       android-devices: |
         device=pixel_7,     os=36, orientation=portrait
-

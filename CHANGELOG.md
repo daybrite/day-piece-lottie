@@ -7,6 +7,17 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 ## Unreleased
 
+- New: the web-view arm. Every backend without a native Lottie player — macOS, Linux, Windows,
+  HarmonyOS and the web — now plays the same file with Airbnb's lottie-web, vendored under
+  `web/` and shown through `day-piece-webview`. `lottie("hello")` is the whole API on all of
+  them, unchanged. `macos-gtk` and `windows-gtk` have no WebKitGTK and still realize the
+  placeholder. Needs a `day` CLI that stages `[package.metadata.day.piece].assets`.
+- New: the demo is a navigation app of twelve animations, one route each, ten of them Airbnb's
+  own samples vendored under `demo/resource/assets/lottie/` (Apache-2.0, with their provenance
+  recorded beside them). `dayscript/gallery.yaml` opens every one by its route and captures it;
+  `dayscript/lottie.yaml` drives the playground page it opens on. CI runs both on all eight
+  primary platform-toolkit pairs and publishes the captures and the web build to the project
+  website (`demo/website/`).
 - Changed: the Android factory moved from `platform/android/java/…/DayLottie.java` to
   `src/DayLottie.java`, beside the Rust arms. Building for Android now needs a `day` CLI that
   links single-file `java` entries; an older one skips the file, and the app fails when it first

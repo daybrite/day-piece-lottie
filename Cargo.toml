@@ -3,7 +3,7 @@ name = "day-piece-lottie"
 version = "0.4.2"
 edition = "2024"
 rust-version = "1.89"
-description = "Lottie animations for Day apps on iOS and Android"
+description = "Lottie animations for Day apps, on every platform Day supports"
 repository = "https://github.com/daybrite/day-piece-lottie"
 license = "MPL-2.0"
 # The day framework crates are not on crates.io yet; neither is this one. Apps depend on it
@@ -24,8 +24,20 @@ publish = false
 # release was tested against, and `compat` below says which day minor that is.
 
 [features]
+# The two backends with a native Lottie player of their own.
 uikit = ["dep:day-uikit", "dep:objc2", "dep:objc2-foundation", "dep:objc2-ui-kit"]
 mdc = ["dep:day-android"]
+# The rest play the animation with lottie-web inside a web view (src/web.rs). Each enables the
+# matching backend of day-piece-webview, which is what carries the engine binding; this crate
+# only composes it.
+appkit = ["web", "day-piece-webview/appkit"]
+gtk = ["web", "day-piece-webview/gtk"]
+qt = ["web", "day-piece-webview/qt"]
+xaml = ["web", "day-piece-webview/xaml"]
+arkui = ["web", "day-piece-webview/arkui"]
+dom = ["web", "day-piece-webview/dom"]
+# The shared half of those six.
+web = ["dep:day-piece-webview"]
 
 [package.metadata.day]
 # The day minor this release is built and tested against. `day build` notes a mismatch.
@@ -35,15 +47,24 @@ compat = "0.4"
 # `<pkg>/<backend>` into an app build, so an app depends on this piece with a plain
 # `{ git = "…" }` line, with no per-backend feature fan-out in its Cargo.toml.
 [package.metadata.day.piece]
-backends = ["uikit", "mdc"]
+backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "arkui", "dom"]
+# The web-view arm's bundled site (web/README.md): `day build` stages this directory into every
+# target's assets under `day-piece-lottie/`, so the page and the player are in the app's bundle
+# without the app copying anything.
+assets = ["web"]
 
 [dependencies]
 day-spec = { git = "https://github.com/daybrite/day.git" }
 day-core = { git = "https://github.com/daybrite/day.git" }
 day-pieces = { git = "https://github.com/daybrite/day.git" }
 day-reactive = { git = "https://github.com/daybrite/day.git" }
+# The timer behind the web arm's wait for the player page to load (src/web.rs).
+day-async = { git = "https://github.com/daybrite/day.git" }
 day-uikit = { git = "https://github.com/daybrite/day.git", optional = true }
 day-android = { git = "https://github.com/daybrite/day.git", optional = true }
+# The engine binding the web-view arm composes. The bare canonical URL, for the same reason the
+# day crates carry one: an app and this piece must resolve one copy of it.
+day-piece-webview = { git = "https://github.com/daybrite/day-piece-webview.git", optional = true }
 log = "0.4"
 linkme = "0.3"
 # The headless model reader (src/model.rs). Already in every Day app's graph through day-script.
