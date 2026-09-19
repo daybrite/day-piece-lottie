@@ -178,5 +178,11 @@ Run `cargo test` for the model and host checks. From `demo/`, run
 `day launch -p macos-appkit --script dayscript/lottie.yaml --script dayscript/gallery.yaml`,
 or the same command with `-p ios-uikit`, `-p android-mdc`, `-p web-dom`, or any other target in
 [demo/Day.toml](demo/Day.toml). CI runs both scripts on all eight primary platform-toolkit
-pairs, publishes the captures to the project website, and deploys the web build beside them.
+pairs: `macos-appkit`, `ios-uikit`, `linux-gtk`, `linux-qt`, `windows-xaml`, `android-mdc`,
+`harmony-arkui`, and `web-dom`. After all eight pass, main builds and release tags update
+the demo site. The latest release's web build is hosted at
+[/webapp/](https://daybrite.github.io/day-piece-lottie/webapp/), and this run's build at
+[/main/webapp/](https://daybrite.github.io/day-piece-lottie/main/webapp/), alongside each
+version's captures and packages. Publishing a new release with a web artifact updates
+the release webapp. Pull requests and other branches build and test without publishing.
 Inspect playback on the platforms you ship for the animations you ship.
