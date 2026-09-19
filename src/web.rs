@@ -130,7 +130,13 @@ fn load_call(name: &str, looping: bool, autoplay: bool, speed: f64) -> String {
 /// the pause between them. A page this small is ready within a frame or two of the view being
 /// realized; the ceiling is for a machine under load, and reaching it means something is wrong
 /// rather than slow.
-const READY_TRIES: u32 = 60;
+///
+/// Thirty seconds of ceiling rather than the three it takes here, because the slow case is not a
+/// slow page: it is an engine that has not started yet. WebView2's first process launch on a
+/// fresh Windows CI runner answers every evaluation with "no engine" until it is up, and that
+/// alone can outlast five seconds (day-piece-webview's own walkthrough budgets thirty for it).
+/// Giving up early there leaves the stage empty for the rest of the run.
+const READY_TRIES: u32 = 600;
 const READY_PAUSE_MS: u64 = 50;
 
 /// Run `script` in the page and drop the reply: an eval dispatches nothing until its future is
