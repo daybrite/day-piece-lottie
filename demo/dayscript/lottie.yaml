@@ -12,8 +12,12 @@ description: Read the bundled animations back on device, swap between them, and 
 flow:
   - wait_for: { id: nav }
   - navigate: { route: playground }
-  - wait_for: { id: lottie-view }
-  - assert_visible: { id: lottie-view }
+  # The player is a web view. On HarmonyOS that is ArkWeb, which CI's x86_64 Oniro image ships
+  # with arm64-only native libraries, so the engine never loads there and the view is mounted
+  # with no frame (day docs/harmonyos.md). The model readouts below come from Rust and hold
+  # everywhere; the view's presence is asserted where the engine can present it.
+  - wait_for: { id: lottie-view, skip_on: [arkui] }
+  - assert_visible: { id: lottie-view, skip_on: [arkui] }
 
   # What hello.json says: 60 frames at 30 fps is two seconds of a 200 × 200 composition with one
   # shape layer and nothing a player would refuse.
