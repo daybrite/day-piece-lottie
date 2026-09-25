@@ -30,12 +30,14 @@ flow:
   # The page writes its own state into the body, and on the backends that evaluate JavaScript
   # this reads it back. Skipped where there is nothing to ask: iOS and Android play the file with
   # Airbnb's own renderer, and gtk and web-dom have no evaluation arm (they fetch instead, so a
-  # failure there shows up in the capture).
+  # failure there shows up in the capture). HarmonyOS has the arm, but CI's x86_64 Oniro image
+  # ships ArkWeb with arm64-only native libraries, so the engine never loads and an eval waits
+  # forever (day docs/harmonyos.md); the capture shows what the view did instead.
   - web_eval:
       id: hello
       script: "document.body.getAttribute('data-day-lottie')"
       text: playing
-      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom]
+      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom, arkui]
   - screenshot: { name: hello, title: "Hello (square)" }
 
   - navigate: { route: hamburger-arrow }
@@ -93,7 +95,7 @@ flow:
       id: pin-jump
       script: "document.body.getAttribute('data-day-lottie')"
       text: playing
-      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom]
+      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom, arkui]
   - screenshot: { name: pin-jump, title: "Pin jump" }
 
   - navigate: { route: twitter-heart }
