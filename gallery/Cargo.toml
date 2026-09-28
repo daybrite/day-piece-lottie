@@ -1,0 +1,46 @@
+[package]
+name = "day-piece-lottie-gallery"
+version = "0.1.0"
+edition = "2024"
+description = "The day-piece-lottie example pages and their animations, shared by the Lottie Demo app and any app that wants to show them"
+repository = "https://github.com/daybrite/day-piece-lottie"
+license = "MPL-2.0"
+publish = false
+
+# The demo's pages as a library any Day app can mount: the Lottie Demo is a sidebar of them, and
+# Day-Showcase shows the same pages under its Lottie section. One copy of the code, so the two
+# can never drift apart.
+#
+# A library of pages rather than an app: no window, no backend features, its strings in a private
+# catalog (resource/locales, https://daybrite.dev/docs/localization "Private catalogs"), and its
+# animations in a data-asset directory that `day build` stages into whichever app depends on it,
+# under this crate's name (below). The host copies nothing. Like the piece, every day dependency
+# names the bare canonical URL so the app's Cargo.lock picks one day revision for the whole graph.
+
+[package.metadata.day.piece]
+# The animations the pages play: staged into every target's bundle as
+# `day-piece-lottie-gallery/<file>`, which is the name each page hands `lottie()`.
+assets = ["animations"]
+# The player's backends, forwarded below. `day build` switches on a piece's backend feature only
+# for the app's direct dependencies (cargo allows `<pkg>/<feature>` for no other), so a host that
+# depends on this crate alone reaches the player through these, the way day-piece-lottie reaches
+# day-piece-webview.
+backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "arkui", "dom"]
+
+[features]
+uikit = ["day-piece-lottie/uikit"]
+mdc = ["day-piece-lottie/mdc"]
+appkit = ["day-piece-lottie/appkit"]
+gtk = ["day-piece-lottie/gtk"]
+qt = ["day-piece-lottie/qt"]
+xaml = ["day-piece-lottie/xaml"]
+arkui = ["day-piece-lottie/arkui"]
+dom = ["day-piece-lottie/dom"]
+
+[dependencies]
+day = { git = "https://github.com/daybrite/day.git" }
+day-fluent = { git = "https://github.com/daybrite/day.git" }
+day-piece-lottie = { path = ".." }
+
+[build-dependencies]
+day-build = { git = "https://github.com/daybrite/day.git" }

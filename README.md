@@ -97,6 +97,20 @@ player's rate. The defaults are looping, autoplay, and speed `1.0`. A string sig
 or closure passed as the name switches files live. Use `"lottie/hello"` for
 `resource/assets/lottie/hello.json`; leave off the `.json` extension.
 
+To show this crate's own examples in your app (every page of the demo, with its twelve
+animations), depend on its gallery instead of copying them. The animations arrive in your bundle as
+the gallery's data assets, and the gallery switches the player's backends on for you:
+
+```toml
+day-piece-lottie-gallery = { git = "https://github.com/daybrite/day-piece-lottie.git" }
+```
+
+```rust
+use day_piece_lottie_gallery::{LottiePage, gallery};
+
+gallery(Signal::new(LottiePage::PinJump)) // every page, with a picker above whichever is open
+```
+
 List the targets in the app's `Day.toml` and give the app the matching Day backend
 features (see [demo/Cargo.toml](demo/Cargo.toml)). Run `day build -p android-mdc` or
 `day launch -p macos-appkit` with that platform's SDK installed. Day enables the piece's
