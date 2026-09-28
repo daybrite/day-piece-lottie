@@ -20,10 +20,11 @@ on:
     # Daily: day's main moves, and so do lottie-ios and lottie-android, on weeks nobody pushes.
     - cron: "0 9 * * *"
 
+# The repository's own jobs run this checkout's code with a read-only token. The write grants
+# sit on the job that calls the shared workflow, whose release and Pages jobs alone use them;
+# its build legs, which run this code too, narrow their token to read-only themselves.
 permissions:
-  contents: write # release-asset upload on tag builds
-  pages: write    # the project website + web build → GitHub Pages (deploy-web)
-  id-token: write # deploy-pages OIDC token (deploy-web)
+  contents: read
 
 jobs:
   host:
@@ -79,7 +80,11 @@ jobs:
   # declared in demo/Day.toml and buildable by hand; macos-gtk and windows-gtk have no WebKitGTK
   # to host the player at all, so the view reports Unsupported there.
   demo:
-    uses: daybrite/actions/.github/workflows/dayapp.yml@main
+    uses: daybrite/actions/.github/workflows/dayapp.yml@v1
+    permissions:
+      contents: write # release-asset upload on tag builds
+      pages: write    # the project website + web build → GitHub Pages (deploy-web)
+      id-token: write # deploy-pages OIDC token (deploy-web)
     secrets: inherit
     with:
       project-path: demo
@@ -95,9 +100,6 @@ jobs:
       # Edge and the WebView2 SDK do not supply the runtime used by the Windows player.
       target-packages: |
         windows-xaml: webview2-runtime
-      # The CLI that builds, and the framework revision: with no lock committed the shared
-      # workflow resolves one fresh, and this moves every leg to the same tip-of-main revision.
-      day-version: main
       update-day-deps: true
       scripts: dayscript/lottie.yaml dayscript/gallery.yaml
       preflight-checks: fmt, clippy, test
