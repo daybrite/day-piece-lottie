@@ -347,35 +347,37 @@ fn playground(page: Signal<LottiePage>) -> impl Piece {
     // a phone has little height left over, and a script whose lines run taller (Arabic) leaves
     // none, which drew the animation zero points tall. A fixed stage keeps it visible at every
     // size and in every language, and whatever does not fit scrolls into view.
-    scroll(column((
-        labeled(
-            res::str::animation(),
-            picker(
-                ANIMATIONS
-                    .iter()
-                    .map(|a| (a.title)().format())
-                    .collect::<Vec<_>>(),
-                selected,
-            )
-            .menu()
-            .id("lottie-animation"),
-        ),
-        label(move || (animation(selected.get()).note)().format())
-            .font(Font::Callout)
-            .id("lottie-note"),
-        lottie(name)
-            .looping(true)
-            .autoplay(true)
-            .speed(speed)
-            // The id before the height: a decorator takes the id of what it wraps, and the web
-            // arms need it on the engine itself so `web_eval` can reach the player.
-            .id("lottie-view")
-            .height(PLAYGROUND_STAGE),
-        facts(move || animation(selected.get())),
-        playback(speed),
-    ))
-    .spacing(12.0)
-    .padding(16.0))
+    scroll(
+        column((
+            labeled(
+                res::str::animation(),
+                picker(
+                    ANIMATIONS
+                        .iter()
+                        .map(|a| (a.title)().format())
+                        .collect::<Vec<_>>(),
+                    selected,
+                )
+                .menu()
+                .id("lottie-animation"),
+            ),
+            label(move || (animation(selected.get()).note)().format())
+                .font(Font::Callout)
+                .id("lottie-note"),
+            lottie(name)
+                .looping(true)
+                .autoplay(true)
+                .speed(speed)
+                // The id before the height: a decorator takes the id of what it wraps, and the web
+                // arms need it on the engine itself so `web_eval` can reach the player.
+                .id("lottie-view")
+                .height(PLAYGROUND_STAGE),
+            facts(move || animation(selected.get())),
+            playback(speed),
+        ))
+        .spacing(12.0)
+        .padding(16.0),
+    )
 }
 
 /// The playground's animation height in points: room for any of the animations to read at a
