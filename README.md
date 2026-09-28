@@ -108,7 +108,7 @@ day-piece-lottie-gallery = { git = "https://github.com/daybrite/day-piece-lottie
 ```rust
 use day_piece_lottie_gallery::{LottiePage, gallery};
 
-gallery(Signal::new(LottiePage::PinJump)) // every page, with a picker above whichever is open
+gallery(Signal::new(LottiePage::PinJump)) // every animation behind one picker, opening on pin jump
 ```
 
 List the targets in the app's `Day.toml` and give the app the matching Day backend

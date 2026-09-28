@@ -42,4 +42,3 @@ model_error = تعذّرت قراءة الملف
 playback_section = التشغيل
 speed = السرعة
 
-gallery_page = المثال

@@ -51,5 +51,3 @@ model_error = Impossible de lire le fichier
 playback_section = Lecture
 speed = Vitesse
 
-# Le sélecteur au-dessus des pages quand une app les montre en une seule (`gallery()`).
-gallery_page = Exemple

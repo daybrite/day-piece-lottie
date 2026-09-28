@@ -37,6 +37,8 @@ use day_piece_webview::{EvalError, JsHandle, eval_support, web_view_inline};
 use day_pieces::{Reactive, TextSource};
 use day_reactive::bind_seeded;
 use day_spec::{AssetDir, AssetName, Support};
+use std::cell::Cell;
+use std::rc::Rc;
 
 /// Where `[package.metadata.day.piece].assets` stages this crate's `web/` directory in every
 /// app's bundle. The namespace is the crate name, which the CLI chooses, not this file.
@@ -148,17 +150,27 @@ fn tell(js: JsHandle, script: String) {
     });
 }
 
-/// Run `script` once the page can run it.
+/// Run `script` once the page can run it, unless a later call has superseded it.
 ///
 /// A view is realized before the page it points at has loaded, and an evaluation that lands in
 /// between runs in a document that has no `window.dayLottie` in it yet and is lost without a
 /// trace. So ask the page whether it is there, and hand it the animation when it answers.
-fn tell_when_ready(js: JsHandle, script: String) {
+///
+/// Each call waits on its own, so two in quick succession (a picker stepped through its options)
+/// can become ready in either order, and the older animation would win by arriving last. `turn`
+/// is the view's count of calls and `mine` this one's place in it: a call that is no longer the
+/// latest when the page answers sends nothing.
+fn tell_when_ready(js: JsHandle, script: String, turn: Rc<Cell<u64>>, mine: u64) {
     day_core::task(async move {
         for _ in 0..READY_TRIES {
+            if turn.get() != mine {
+                return;
+            }
             match js.eval("typeof window.dayLottie").await {
                 Ok(reply) if reply.contains("object") => {
-                    let _ = js.eval(script).await;
+                    if turn.get() == mine {
+                        let _ = js.eval(script).await;
+                    }
                     return;
                 }
                 // The view is gone: navigation replaced it, and whatever is on screen now is
@@ -200,8 +212,11 @@ pub(crate) fn build(
     // site to its own directory (the GTK cache extraction, WebKit's file-URL read access).
     let site = AssetDir::dynamic(SITE_ROOT.to_string());
     let js = JsHandle::new();
+    // Transparent: an animation belongs to the app's own surface, the way the native players draw
+    // it, not on a white sheet the web view would otherwise paint under the page.
     let view = web_view_inline(site)
         .app_assets()
+        .transparent()
         .start_page(start_page(opening, looping, autoplay, initial_speed))
         .js(js);
 
@@ -211,11 +226,15 @@ pub(crate) fn build(
     let node = view.build(cx);
 
     if evaluates {
+        // Which animation load is the latest, so a superseded one never overwrites it.
+        let turn: Rc<Cell<u64>> = Rc::new(Cell::new(0));
         // The animation itself. After the build, because that is what binds the handle to the
         // view: an eval issued before it has nothing to run in and answers `ViewGone`.
         tell_when_ready(
             js,
             load_call(&initial_name, looping, autoplay, initial_speed),
+            turn.clone(),
+            0,
         );
         // A bound rate reaches the running animation; a constant one is already in the call
         // above and never fires here.
@@ -230,7 +249,14 @@ pub(crate) fn build(
                 initial_name,
                 move || read(),
                 move |n: &String| {
-                    tell_when_ready(js, load_call(n, looping, autoplay, initial_speed))
+                    let mine = turn.get() + 1;
+                    turn.set(mine);
+                    tell_when_ready(
+                        js,
+                        load_call(n, looping, autoplay, initial_speed),
+                        turn.clone(),
+                        mine,
+                    )
                 },
             );
         }

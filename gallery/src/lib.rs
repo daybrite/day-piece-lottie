@@ -12,8 +12,8 @@
 //! * [`pages`] lists every page with its route and title, for an app that builds its own
 //!   navigation around them (the demo's sidebar is one `nav` item per entry), and [`LottiePage`]
 //!   is the route type, so `…/#pin-jump` opens the same page in every host.
-//! * [`gallery`] is the whole set as one page with its own picker, for an app that gives the
-//!   animations a single slot (Showcase's Lottie section).
+//! * [`gallery`] is every animation in one page, the playground, whose one picker chooses among
+//!   them, for an app that gives the animations a single slot (Showcase's Lottie section).
 //!
 //! The animations are this crate's data assets (`animations/`, declared in Cargo.toml), which
 //! `day build` stages into the host's bundle as `day-piece-lottie-gallery/<file>`: the host
@@ -194,7 +194,7 @@ pub fn pages() -> Vec<Entry> {
     let mut all = vec![Entry {
         page: LottiePage::Playground,
         title: res::str::nav_picker,
-        build: || playground_page().any(),
+        build: || playground(Signal::new(LottiePage::Hello)).any(),
     }];
     all.extend(examples());
     all
@@ -245,57 +245,19 @@ pub fn page(page: LottiePage) -> AnyPiece {
         .unwrap_or_else(|| label("").any())
 }
 
-/// Every page as one: a picker of the pages above whichever is open, for a host that gives the
-/// animations a single slot in its own navigation. `selected` is the open page, owned by the
-/// host so it can remember or deep-link it.
+/// Every animation in one page, for a host that gives the animations a single slot in its own
+/// navigation: the playground, whose one picker chooses among them. `selected` is the animation
+/// playing, owned by the host so it can pick the one the page opens on and remember or deep-link
+/// it; the playground's own route ([`LottiePage::Playground`]) selects the first animation.
 pub fn gallery(selected: Signal<LottiePage>) -> impl Piece {
     register();
-    let entries = pages();
-    let names: Vec<String> = entries.iter().map(|e| (e.title)().format()).collect();
-    let keys: Vec<LottiePage> = entries.iter().map(|e| e.page).collect();
-    // The picker speaks indices; the host's signal speaks pages. Each follows the other, so a
-    // host that sets the page (a deep link) moves the picker too.
-    let index = Signal::new(
-        keys.iter()
-            .position(|k| *k == selected.get_untracked())
-            .unwrap_or(0),
-    );
-    {
-        let keys = keys.clone();
-        Effect::new(move || {
-            let i = index.get();
-            if let Some(k) = keys.get(i).copied()
-                && untrack(|| selected.get()) != k
-            {
-                selected.set(k);
-            }
-        });
-    }
-    Effect::new(move || {
-        let k = selected.get();
-        if let Some(i) = keys.iter().position(|p| *p == k)
-            && untrack(|| index.get()) != i
-        {
-            index.set(i);
-        }
-    });
-    column((
-        row((
-            label(res::str::gallery_page()),
-            picker(names, index).menu().id("lottie-gallery-picker"),
-        ))
-        .spacing(8.0)
-        .align(VAlign::Center)
-        .padding(16.0),
-        // One row keyed by the open page's route: a new page replaces the old one, so each page
-        // starts from its own first state, and the old page's signals go with its scope.
-        each(
-            items(move || vec![selected.get()], |p: &LottiePage| p.key()),
-            |slot| page(slot.get()),
-        )
-        .grow(),
-    ))
-    .grow()
+    playground(selected)
+}
+
+/// The position in [`ANIMATIONS`] of the animation `page` opens, the first for any page that is
+/// not an animation's (the playground).
+fn index_of(page: LottiePage) -> usize {
+    ANIMATIONS.iter().position(|a| a.page == page).unwrap_or(0)
 }
 
 /// Make this crate's strings resolvable by their qualified dayscript keys
@@ -353,18 +315,39 @@ fn summary(anim: &'static Animation) -> String {
     }
 }
 
-/// The playground: the picker of every bundled animation, the one it selects, the reader's full
-/// panel, and the playback controls.
+/// The playground: the picker of every bundled animation, what the selected one is, the animation
+/// itself, the reader's full panel, and the playback controls. `page` is the animation selected,
+/// owned by whoever mounts the view (the demo's sidebar page, a host's [`gallery`]); the picker
+/// writes it and follows it.
 ///
-/// The picker is what covers the reactive name: `lottie(closure)` reads the signal the picker
-/// writes and swaps the running view's animation in place, which the other pages never ask for
-/// because navigating to one builds the view afresh.
-fn playground_page() -> impl Piece {
-    let selected = Signal::new(0usize);
+/// The picker is what covers the reactive name: `lottie(closure)` reads the selection and swaps
+/// the running view's animation in place, which the other pages never ask for because navigating
+/// to one builds the view afresh.
+fn playground(page: Signal<LottiePage>) -> impl Piece {
+    // The picker speaks indices and the owner speaks pages; each follows the other, so an owner
+    // that sets the page (a deep link) moves the picker too.
+    let selected = Signal::new(index_of(page.get_untracked()));
+    Effect::new(move || {
+        let wanted = ANIMATIONS[selected.get().min(ANIMATIONS.len() - 1)].page;
+        if untrack(|| page.get()) != wanted {
+            page.set(wanted);
+        }
+    });
+    Effect::new(move || {
+        let i = index_of(page.get());
+        if untrack(|| selected.get()) != i {
+            selected.set(i);
+        }
+    });
     let name = move || animation(selected.get()).name.to_string();
     let speed = Signal::new(1.0_f64);
 
-    column((
+    // A page that scrolls around a stage of fixed height, not a column the animation grows to
+    // fill: under the picker, the description, the reader's six rows and the playback controls,
+    // a phone has little height left over, and a script whose lines run taller (Arabic) leaves
+    // none, which drew the animation zero points tall. A fixed stage keeps it visible at every
+    // size and in every language, and whatever does not fit scrolls into view.
+    scroll(column((
         labeled(
             res::str::animation(),
             picker(
@@ -374,21 +357,30 @@ fn playground_page() -> impl Piece {
                     .collect::<Vec<_>>(),
                 selected,
             )
+            .menu()
             .id("lottie-animation"),
         ),
+        label(move || (animation(selected.get()).note)().format())
+            .font(Font::Callout)
+            .id("lottie-note"),
         lottie(name)
             .looping(true)
             .autoplay(true)
             .speed(speed)
+            // The id before the height: a decorator takes the id of what it wraps, and the web
+            // arms need it on the engine itself so `web_eval` can reach the player.
             .id("lottie-view")
-            .grow(),
+            .height(PLAYGROUND_STAGE),
         facts(move || animation(selected.get())),
         playback(speed),
     ))
     .spacing(12.0)
-    .padding(16.0)
-    .grow()
+    .padding(16.0))
 }
+
+/// The playground's animation height in points: room for any of the animations to read at a
+/// glance on a phone, with the page's text and controls still in reach below it.
+const PLAYGROUND_STAGE: f64 = 300.0;
 
 /// The playback controls: a slider over the rate, the readout of it, and three presets that write
 /// the same signal, so a tap moves the slider and the readout together.

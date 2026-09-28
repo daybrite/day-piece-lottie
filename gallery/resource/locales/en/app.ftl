@@ -50,5 +50,3 @@ model_error = Could not read the file
 playback_section = Playback
 speed = Speed
 
-# The picker above the pages when an app shows them as one page (`gallery()`).
-gallery_page = Example

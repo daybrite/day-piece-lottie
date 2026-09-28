@@ -42,4 +42,3 @@ model_error = 无法读取文件
 playback_section = 播放
 speed = 速度
 
-gallery_page = 示例
