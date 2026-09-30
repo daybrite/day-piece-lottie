@@ -34,6 +34,8 @@ appkit = ["web", "day-piece-webview/appkit"]
 gtk = ["web", "day-piece-webview/gtk"]
 qt = ["web", "day-piece-webview/qt"]
 xaml = ["web", "day-piece-webview/xaml"]
+# WinUI 3 (windows-winui, docs/winui.md): the xaml half, built against Microsoft.UI.Xaml.
+winui = ["xaml", "day-piece-webview/winui"]
 arkui = ["web", "day-piece-webview/arkui"]
 dom = ["web", "day-piece-webview/dom"]
 # The shared half of those six.
@@ -47,7 +49,7 @@ compat = "0.4"
 # `<pkg>/<backend>` into an app build, so an app depends on this piece with a plain
 # `{ git = "…" }` line, with no per-backend feature fan-out in its Cargo.toml.
 [package.metadata.day.piece]
-backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "arkui", "dom"]
+backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "winui", "arkui", "dom"]
 # The web-view arm's bundled site (web/README.md): `day build` stages this directory into every
 # target's assets under `day-piece-lottie/`, so the page and the player are in the app's bundle
 # without the app copying anything.

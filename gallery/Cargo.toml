@@ -25,7 +25,7 @@ assets = ["animations"]
 # for the app's direct dependencies (cargo allows `<pkg>/<feature>` for no other), so a host that
 # depends on this crate alone reaches the player through these, the way day-piece-lottie reaches
 # day-piece-webview.
-backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "arkui", "dom"]
+backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "winui", "arkui", "dom"]
 
 [features]
 uikit = ["day-piece-lottie/uikit"]
@@ -34,6 +34,7 @@ appkit = ["day-piece-lottie/appkit"]
 gtk = ["day-piece-lottie/gtk"]
 qt = ["day-piece-lottie/qt"]
 xaml = ["day-piece-lottie/xaml"]
+winui = ["day-piece-lottie/winui"]
 arkui = ["day-piece-lottie/arkui"]
 dom = ["day-piece-lottie/dom"]
 
