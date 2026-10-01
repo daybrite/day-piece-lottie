@@ -93,13 +93,13 @@ jobs:
         ios-uikit,
         linux-gtk,
         linux-qt,
-        windows-xaml,
+        windows-winui,
         android-mdc,
         harmony-arkui,
         web-dom
       # Edge and the WebView2 SDK do not supply the runtime used by the Windows player.
       target-packages: |
-        windows-xaml: webview2-runtime
+        windows-winui: webview2-runtime
       update-day-deps: true
       scripts: dayscript/lottie.yaml dayscript/gallery.yaml
       preflight-checks: fmt, clippy, test
