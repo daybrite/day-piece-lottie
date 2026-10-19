@@ -45,7 +45,7 @@ the piece out of an engine each platform already ships.
 |---|---|---|
 | Animation playback | `ios-uikit` | [Lottie for iOS](https://github.com/airbnb/lottie-ios): SwiftPM `Lottie` product, compatible versions starting at 4.5.0. |
 | Animation playback | `android-mdc` | [Lottie for Android](https://github.com/airbnb/lottie-android): Gradle `com.airbnb.android:lottie:6.6.0`. |
-| Animation playback | `macos-appkit`, `macos-qt`, `linux-gtk`, `linux-qt`, `windows-xaml`, `windows-qt`, `harmony-arkui`, `web-dom` | lottie-web 5.13.0 in a web view: WebKit, WebKitGTK, QtWebEngine, WebView2, ArkWeb, or the browser's own frame. |
+| Animation playback | `macos-appkit`, `macos-qt`, `linux-gtk`, `linux-qt`, `windows-winui`, `windows-qt`, `harmony-arkui`, `web-dom` | lottie-web 5.13.0 in a web view: WebKit, WebKitGTK, QtWebEngine, WebView2, ArkWeb, or the browser's own frame. |
 | Animation playback | `macos-gtk`, `windows-gtk` | No WebKitGTK on those hosts, so there is no engine to host the player and the view realizes Day's placeholder. |
 | Metadata parsing and verification | All Rust targets supported by the crate | No native player or backend feature required. |
 
@@ -177,7 +177,7 @@ shapes. See [the implementation notes](docs/lottie.md) for the native boundary.
 
 ## Compatibility and development
 
-This checkout requires Rust 1.89 or newer and declares compatibility with Day 0.4 in
+This checkout requires Rust 1.89 or newer and declares compatibility with Day 0.5 in
 [Cargo.toml](Cargo.toml). The crate is consumed from Git, not crates.io. Its Day
 dependencies use `https://github.com/daybrite/day.git` without a branch, tag, or
 revision. Use the same source in your app and keep its `Cargo.lock` to record the
@@ -192,7 +192,7 @@ Run `cargo test` for the model and host checks. From `demo/`, run
 `day launch -p macos-appkit --script dayscript/lottie.yaml --script dayscript/gallery.yaml`,
 or the same command with `-p ios-uikit`, `-p android-mdc`, `-p web-dom`, or any other target in
 [demo/Day.toml](demo/Day.toml). CI runs both scripts on all eight primary platform-toolkit
-pairs: `macos-appkit`, `ios-uikit`, `linux-gtk`, `linux-qt`, `windows-xaml`, `android-mdc`,
+pairs: `macos-appkit`, `ios-uikit`, `linux-gtk`, `linux-qt`, `windows-winui`, `android-mdc`,
 `harmony-arkui`, and `web-dom`. After all eight pass, main builds and release tags update
 the demo site. The latest release's web build is hosted at
 [/webapp/](https://daybrite.github.io/day-piece-lottie/webapp/), and this run's build at

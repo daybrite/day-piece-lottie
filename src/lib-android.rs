@@ -9,60 +9,41 @@
 // ---------------------------------------------------------------------------
 
 use super::*;
-use day_android::DayEnv;
-use day_android::jni::objects::JValue;
-use day_android::{AHandle, Android, with_env};
+use day_android::jni::objects::JString;
+use day_android::{AHandle, Android, java};
 use day_spec::NodeId;
 
-/// This piece's Java class (src/DayLottie.java, on the app classpath at build).
-const LOTTIE_CLASS: &str = "dev/daybrite/day/piece/lottie/DayLottie";
+// This piece's Java class (src/DayLottie.java, on the app classpath at build).
+day_android::java_class! {
+    DayLottie => dev.daybrite.day.piece.lottie.DayLottie,
+    methods {
+        static fn makeLottie(name: JString, looping: jboolean, autoplay: jboolean, speed: jfloat)
+            -> android.view.View,
+        static fn setSpeed(view: android.view.View, speed: jfloat),
+        static fn setAnimation(view: android.view.View, name: JString),
+    },
+}
 
 fn make(_backend: &mut Android, p: &LottieProps, _id: NodeId) -> AHandle {
-    with_env(|env| {
-        // A Java throw (e.g. the Lottie dependency missing from the app build) must not
-        // panic inside realize: the panic unwinds the JNI up-call and aborts. Placeholder.
-        let made = env.new_string(&p.name).ok().and_then(|name| {
-            day_android::try_make_view_on(
-                env,
-                LOTTIE_CLASS,
-                "makeLottie",
-                "(Ljava/lang/String;ZZF)Landroid/view/View;",
-                &[
-                    JValue::Object(&name),
-                    JValue::Bool(p.looping),
-                    JValue::Bool(p.autoplay),
-                    JValue::Float(p.speed as f32),
-                ],
-            )
-            .ok()
-        });
-        AHandle(made.unwrap_or_else(|| {
-            log::warn!("day-piece-lottie: DayLottie.makeLottie failed; substituting a placeholder");
-            day_android::placeholder_view(env, "lottie")
-        }))
+    // A Java throw (e.g. the Lottie dependency missing from the app build) must not panic
+    // inside realize: the panic unwinds the JNI up-call and aborts. Placeholder instead.
+    day_android::realize("lottie", |env| {
+        let name = JString::from_str(env, &p.name)?;
+        DayLottie::makeLottie(env, &name, p.looping, p.autoplay, p.speed as f32)
     })
 }
 
 fn update(_backend: &mut Android, h: &AHandle, patch: &LottiePatch) {
     match patch {
-        LottiePatch::Speed(s) => with_env(|env| {
-            let _ = env.dcall_static(
-                LOTTIE_CLASS,
-                "setSpeed",
-                "(Landroid/view/View;F)V",
-                &[JValue::Object(h.0.as_obj()), JValue::Float(*s as f32)],
-            );
-        }),
-        LottiePatch::Name(n) => with_env(|env| {
-            if let Ok(name) = env.new_string(n) {
-                let _ = env.dcall_static(
-                    LOTTIE_CLASS,
-                    "setAnimation",
-                    "(Landroid/view/View;Ljava/lang/String;)V",
-                    &[JValue::Object(h.0.as_obj()), JValue::Object(&name)],
-                );
-            }
-        }),
+        LottiePatch::Speed(s) => {
+            java(|env| DayLottie::setSpeed(env, h.0.as_obj(), *s as f32));
+        }
+        LottiePatch::Name(n) => {
+            java(|env| {
+                let name = JString::from_str(env, n)?;
+                DayLottie::setAnimation(env, h.0.as_obj(), &name)
+            });
+        }
     }
 }
 

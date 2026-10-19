@@ -90,7 +90,7 @@ How the animation reaches the page is where the engines differ:
 
 | | Told | Fetches |
 |---|---|---|
-| backends | `macos-appkit`, `macos-qt`, `linux-qt`, `windows-xaml`, `windows-qt`, `harmony-arkui` | `linux-gtk`, `web-dom` |
+| backends | `macos-appkit`, `macos-qt`, `linux-qt`, `windows-winui`, `windows-qt`, `harmony-arkui` | `linux-gtk`, `web-dom` |
 | how | this side reads the file through Day's resource opener and evaluates `dayLottie.loadData(<the file's text>, …)` in the page | the name rides in the page's query string and the page fetches `../<name>.json` itself |
 | why | `eval_support()` is `Native` there, and on WebKit it is the only way: a page opened from a `file:` URL may not read a file with `XMLHttpRequest`, not even one beside it | no JavaScript-evaluation arm yet; WebKitGTK reaches the file because the view asks for the app's assets (`app_assets`), and web-dom serves the asset tree over http |
 
