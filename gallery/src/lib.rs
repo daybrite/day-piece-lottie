@@ -275,15 +275,20 @@ fn animation_page(anim: &'static Animation) -> impl Piece {
     column((
         label((anim.title)())
             .font(Font::Headline)
-            .id("lottie-example-title"),
-        label((anim.note)()).font(Font::Callout).id("lottie-note"),
+            .id(day::id!(lottie_example_title)),
+        label((anim.note)())
+            .font(Font::Callout)
+            .id(day::id!(lottie_note)),
         // The animation takes every point the page has left after the text and the controls, so
         // a window resized in either direction rescales it rather than padding around a fixed
         // frame. The id is the route, which is what the walkthrough waits for after navigating.
-        lottie(anim.name).speed(speed).id(anim.page.key()).grow(),
+        lottie(anim.name)
+            .speed(speed)
+            .id(day::id!(lottie_example, anim.page.key()))
+            .grow(),
         label(summary(anim))
             .font(Font::Caption)
-            .id("lottie-summary"),
+            .id(day::id!(lottie_summary)),
         playback(speed),
     ))
     .spacing(12.0)
@@ -344,14 +349,14 @@ fn playground(page: Signal<LottiePage>) -> impl Piece {
                         .collect::<Vec<_>>(),
                 )
                 .menu()
-                .id("lottie-animation"),
+                .id(day::id!(lottie_animation)),
             ),
             label(move || (current().note)().format())
                 .font(Font::Callout)
-                .id("lottie-note"),
+                .id(day::id!(lottie_note)),
             lottie(name)
                 .speed(speed)
-                .id("lottie-view")
+                .id(day::id!(lottie_view))
                 .height(PLAYGROUND_STAGE),
             facts(current),
             playback(speed),
@@ -368,7 +373,7 @@ const PLAYGROUND_STAGE: f64 = 300.0;
 /// The playback controls: a slider over the rate, the readout of it, and three presets that write
 /// the same signal, so a tap moves the slider and the readout together.
 fn playback(speed: Signal<f64>) -> impl Piece {
-    let preset = move |text: &'static str, value: f64, id: &'static str| {
+    let preset = move |text: &'static str, value: f64, id: day::ElementId| {
         button(text)
             .bordered()
             .action(move || speed.set(value))
@@ -381,15 +386,15 @@ fn playback(speed: Signal<f64>) -> impl Piece {
                 slider(speed)
                     .range(0.25..=3.0)
                     .step(0.25)
-                    .id("lottie-speed-slider"),
-                label(move || format!("{:.2}\u{d7}", speed.get())).id("lottie-speed-value"),
+                    .id(day::id!(lottie_speed_slider)),
+                label(move || format!("{:.2}\u{d7}", speed.get())).id(day::id!(lottie_speed_value)),
             ))
             .spacing(8.0),
         ),
         row((
-            preset("\u{bd}\u{d7}", 0.5, "lottie-speed-half"),
-            preset("1\u{d7}", 1.0, "lottie-speed-one"),
-            preset("2\u{d7}", 2.0, "lottie-speed-double"),
+            preset("\u{bd}\u{d7}", 0.5, day::id!(lottie_speed_half)),
+            preset("1\u{d7}", 1.0, day::id!(lottie_speed_one)),
+            preset("2\u{d7}", 2.0, day::id!(lottie_speed_double)),
         ))
         .spacing(8.0),
     ))
@@ -415,28 +420,30 @@ fn facts(pick: impl Fn() -> &'static Animation + Copy + 'static) -> impl Piece {
                 Some("") | None => res::str::model_unnamed().format(),
                 Some(name) => name.to_string(),
             }))
-            .id("lottie-model-name"),
+            .id(day::id!(lottie_model_name)),
         ),
         labeled(
             res::str::model_frames(),
             label(fact(|m| format!("{} @ {} fps", m.frames(), m.frame_rate)))
-                .id("lottie-model-frames"),
+                .id(day::id!(lottie_model_frames)),
         ),
         labeled(
             res::str::model_duration(),
-            label(fact(|m| format!("{:.1} s", m.duration_secs()))).id("lottie-model-duration"),
+            label(fact(|m| format!("{:.1} s", m.duration_secs())))
+                .id(day::id!(lottie_model_duration)),
         ),
         labeled(
             res::str::model_size(),
-            label(fact(|m| format!("{} \u{d7} {}", m.width, m.height))).id("lottie-model-size"),
+            label(fact(|m| format!("{} \u{d7} {}", m.width, m.height)))
+                .id(day::id!(lottie_model_size)),
         ),
         labeled(
             res::str::model_layers(),
-            label(fact(layer_summary)).id("lottie-model-layers"),
+            label(fact(layer_summary)).id(day::id!(lottie_model_layers)),
         ),
         labeled(
             res::str::model_issues(),
-            label(fact(|m| m.verify().len().to_string())).id("lottie-model-issues"),
+            label(fact(|m| m.verify().len().to_string())).id(day::id!(lottie_model_issues)),
         ),
     ))
     .title(res::str::model_section())

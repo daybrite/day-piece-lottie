@@ -52,5 +52,5 @@ pub fn root() -> impl Piece {
         .title(res::str::app_title())
         .section(res::str::nav_playground(), rows(playground))
         .section(res::str::nav_animations(), rows(animations))
-        .id("nav")
+        .id(day::id!(nav))
 }

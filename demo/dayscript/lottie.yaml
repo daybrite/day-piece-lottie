@@ -16,51 +16,51 @@ flow:
   # with arm64-only native libraries, so the engine never loads there and the view is mounted
   # with no frame (day docs/harmonyos.md). The model readouts below come from Rust and hold
   # everywhere; the view's presence is asserted where the engine can present it.
-  - wait_for: { id: lottie-view, skip_on: [arkui] }
-  - assert_visible: { id: lottie-view, skip_on: [arkui] }
+  - wait_for: { id: lottie_view, skip_on: [arkui] }
+  - assert_visible: { id: lottie_view, skip_on: [arkui] }
 
   # What hello.json says: 60 frames at 30 fps is two seconds of a 200 × 200 composition with one
   # shape layer and nothing a player would refuse.
-  - assert_text: { id: lottie-model-name, text: "hello" }
-  - assert_text: { id: lottie-model-frames, text: "60 @ 30 fps" }
-  - assert_text: { id: lottie-model-duration, text: "2.0 s" }
-  - assert_text: { id: lottie-model-size, text: "200 × 200" }
-  - assert_text: { id: lottie-model-layers, text: "1 shape" }
-  - assert_text: { id: lottie-model-issues, text: "0" }
-  - assert_text: { id: lottie-speed-value, text: "1.00×" }
+  - assert_text: { id: lottie_model_name, text: "hello" }
+  - assert_text: { id: lottie_model_frames, text: "60 @ 30 fps" }
+  - assert_text: { id: lottie_model_duration, text: "2.0 s" }
+  - assert_text: { id: lottie_model_size, text: "200 × 200" }
+  - assert_text: { id: lottie_model_layers, text: "1 shape" }
+  - assert_text: { id: lottie_model_issues, text: "0" }
+  - assert_text: { id: lottie_speed_value, text: "1.00×" }
   - screenshot: { name: lottie, title: "Playground" }
 
   # The picker: a bound name pushes a Name patch, the view loads the other file, and the facts
   # follow. HamburgerArrow.json (Airbnb's sample) records no composition name.
-  - select: { id: lottie-animation, index: 1 }
-  - assert_text: { id: lottie-model-frames, text: "180 @ 30 fps" }
-  - assert_text: { id: lottie-model-duration, text: "6.0 s" }
-  - assert_text: { id: lottie-model-size, text: "400 × 300" }
-  - assert_text: { id: lottie-model-layers, text: "1 null, 3 shape" }
-  - assert_text: { id: lottie-model-issues, text: "0" }
+  - select: { id: lottie_animation, index: 1 }
+  - assert_text: { id: lottie_model_frames, text: "180 @ 30 fps" }
+  - assert_text: { id: lottie_model_duration, text: "6.0 s" }
+  - assert_text: { id: lottie_model_size, text: "400 × 300" }
+  - assert_text: { id: lottie_model_layers, text: "1 null, 3 shape" }
+  - assert_text: { id: lottie_model_issues, text: "0" }
   - pause: { secs: 1.0 }
   - screenshot: lottie-hamburger
 
   # The same patch again, this time to a file in a subdirectory (`lottie/pin-jump`): the name is
   # a path under resource/assets/, and every arm resolves it — the iOS bundle, the Android asset
   # manager, and the web page's relative URL.
-  - select: { id: lottie-animation, index: 7 }
-  - assert_text: { id: lottie-model-name, text: "(unnamed)" }
-  - assert_text: { id: lottie-model-frames, text: "93 @ 30 fps" }
-  - assert_text: { id: lottie-model-size, text: "150 × 150" }
-  - assert_text: { id: lottie-model-layers, text: "1 null, 8 shape" }
+  - select: { id: lottie_animation, index: 7 }
+  - assert_text: { id: lottie_model_name, text: "(unnamed)" }
+  - assert_text: { id: lottie_model_frames, text: "93 @ 30 fps" }
+  - assert_text: { id: lottie_model_size, text: "150 × 150" }
+  - assert_text: { id: lottie_model_layers, text: "1 null, 8 shape" }
   - pause: { secs: 1.0 }
   - screenshot: lottie-subdirectory
-  - select: { id: lottie-animation, index: 0 }
-  - assert_text: { id: lottie-model-frames, text: "60 @ 30 fps" }
+  - select: { id: lottie_animation, index: 0 }
+  - assert_text: { id: lottie_model_frames, text: "60 @ 30 fps" }
 
   # The reactive speed path: slider → signal → a Speed patch, and the readout follows. The slider
   # starts at 1.0, so the first move is a real change rather than a same-value set.
-  - set_value: { id: lottie-speed-slider, value: 2.0 }
-  - assert_text: { id: lottie-speed-value, text: "2.00×" }
+  - set_value: { id: lottie_speed_slider, value: 2.0 }
+  - assert_text: { id: lottie_speed_value, text: "2.00×" }
   - screenshot: lottie-double
 
   # A preset button writes the same signal, so it moves the slider and the readout together.
-  - tap: { id: lottie-speed-half }
-  - assert_text: { id: lottie-speed-value, text: "0.50×" }
+  - tap: { id: lottie_speed_half }
+  - assert_text: { id: lottie_speed_value, text: "0.50×" }
   - screenshot: lottie-half
