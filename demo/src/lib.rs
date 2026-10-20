@@ -25,12 +25,7 @@ day::resources!();
 
 /// The window every entry point opens.
 pub fn window() -> day::WindowOptions {
-    day::WindowOptions {
-        locales: Some((res::locales::DEFAULT, res::locales::CATALOG)),
-        title_fn: Some(|| res::str::app_title().format()),
-        size: day::prelude::Size::new(480.0, 800.0),
-        ..Default::default()
-    }
+    res::window_options().size(480.0, 800.0)
 }
 
 /// The whole app: a sidebar of the playground and every bundled animation, and whichever page is
@@ -42,17 +37,20 @@ pub fn root() -> impl Piece {
     // URL hash on web-dom, `DAY_DEEPLINK` elsewhere), and the browser's back button writes it
     // again.
     let page = Signal::new(LottiePage::Playground);
-    let mut nav = nav(page)
-        .style(NavStyle::Sidebar)
-        .title(res::str::app_title());
     // The playground under its own heading, then one row per animation, in the gallery's order.
-    for entry in gallery::pages() {
-        match entry.page {
-            LottiePage::Playground => nav = nav.section(res::str::nav_playground()),
-            LottiePage::Hello => nav = nav.section(res::str::nav_animations()),
-            _ => {}
-        }
-        nav = nav.item(entry.page, (entry.title)(), move || entry.build());
-    }
-    nav.id("nav")
+    let (playground, animations): (Vec<_>, Vec<_>) = gallery::pages()
+        .into_iter()
+        .partition(|entry| entry.page == LottiePage::Playground);
+    let rows = |entries: Vec<gallery::Entry>| -> Vec<NavItem<LottiePage>> {
+        entries
+            .into_iter()
+            .map(|entry| item(entry.page, (entry.title)()).page(move || entry.build()))
+            .collect()
+    };
+    nav(page)
+        .style(NavStyle::Sidebar)
+        .title(res::str::app_title())
+        .section(res::str::nav_playground(), rows(playground))
+        .section(res::str::nav_animations(), rows(animations))
+        .id("nav")
 }

@@ -86,14 +86,13 @@ fn animation_panel() -> impl Piece {
     let speed = Signal::new(1.0);
     lottie("hello")
         .speed(speed)
-        .looping(true)
-        .autoplay(true)
         .frame(220.0, 220.0)
 }
 ```
 
 A `Signal` is observable state; updating `speed` from a control changes the native
-player's rate. The defaults are looping, autoplay, and speed `1.0`. A string signal
+player's rate. The defaults are looping, autoplay, and speed `1.0`; `.no_loop()` plays
+once and `.no_autoplay()` starts paused. A string signal
 or closure passed as the name switches files live. Use `"lottie/hello"` for
 `resource/assets/lottie/hello.json`; leave off the `.json` extension.
 

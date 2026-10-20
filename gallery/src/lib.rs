@@ -169,8 +169,12 @@ static ANIMATIONS: [Animation; 12] = [
 
 /// The playground picker's selection as an entry of [`ANIMATIONS`], clamped so a stale index
 /// never panics.
-fn animation(index: usize) -> &'static Animation {
-    &ANIMATIONS[index.min(ANIMATIONS.len() - 1)]
+/// The animation `page` opens, the first for any page that is not an animation's (the playground).
+fn animation_of(page: LottiePage) -> &'static Animation {
+    ANIMATIONS
+        .iter()
+        .find(|a| a.page == page)
+        .unwrap_or(&ANIMATIONS[0])
 }
 
 /// One page: the route that opens it, its name, and how to build it.
@@ -254,12 +258,6 @@ pub fn gallery(selected: Signal<LottiePage>) -> impl Piece {
     playground(selected)
 }
 
-/// The position in [`ANIMATIONS`] of the animation `page` opens, the first for any page that is
-/// not an animation's (the playground).
-fn index_of(page: LottiePage) -> usize {
-    ANIMATIONS.iter().position(|a| a.page == page).unwrap_or(0)
-}
-
 /// Make this crate's strings resolvable by their qualified dayscript keys
 /// (`day_piece_lottie_gallery::anim_hello`) without touching the app's locale. Idempotent;
 /// every entry point calls it, so a host never has to.
@@ -282,12 +280,7 @@ fn animation_page(anim: &'static Animation) -> impl Piece {
         // The animation takes every point the page has left after the text and the controls, so
         // a window resized in either direction rescales it rather than padding around a fixed
         // frame. The id is the route, which is what the walkthrough waits for after navigating.
-        lottie(anim.name)
-            .looping(true)
-            .autoplay(true)
-            .speed(speed)
-            .id(anim.page.key())
-            .grow(),
+        lottie(anim.name).speed(speed).id(anim.page.key()).grow(),
         label(summary(anim))
             .font(Font::Caption)
             .id("lottie-summary"),
@@ -324,22 +317,14 @@ fn summary(anim: &'static Animation) -> String {
 /// the running view's animation in place, which the other pages never ask for because navigating
 /// to one builds the view afresh.
 fn playground(page: Signal<LottiePage>) -> impl Piece {
-    // The picker speaks indices and the owner speaks pages; each follows the other, so an owner
-    // that sets the page (a deep link) moves the picker too.
-    let selected = Signal::new(index_of(page.get_untracked()));
-    Effect::new(move || {
-        let wanted = ANIMATIONS[selected.get().min(ANIMATIONS.len() - 1)].page;
-        if untrack(|| page.get()) != wanted {
-            page.set(wanted);
-        }
-    });
-    Effect::new(move || {
-        let i = index_of(page.get());
-        if untrack(|| selected.get()) != i {
-            selected.set(i);
-        }
-    });
-    let name = move || animation(selected.get()).name.to_string();
+    // The picker is bound to the page itself, so an owner that sets the page (a deep link) moves
+    // the picker too. A page that is not an animation's (the playground's own route) selects the
+    // first animation.
+    if !ANIMATIONS.iter().any(|a| a.page == page.get_untracked()) {
+        page.set(ANIMATIONS[0].page);
+    }
+    let current = move || animation_of(page.get());
+    let name = move || current().name.to_string();
     let speed = Signal::new(1.0_f64);
 
     // A page that scrolls around a stage of fixed height, not a column the animation grows to
@@ -352,27 +337,23 @@ fn playground(page: Signal<LottiePage>) -> impl Piece {
             labeled(
                 res::str::animation(),
                 picker(
+                    page,
                     ANIMATIONS
                         .iter()
-                        .map(|a| (a.title)().format())
+                        .map(|a| (a.page, (a.title)()))
                         .collect::<Vec<_>>(),
-                    selected,
                 )
                 .menu()
                 .id("lottie-animation"),
             ),
-            label(move || (animation(selected.get()).note)().format())
+            label(move || (current().note)().format())
                 .font(Font::Callout)
                 .id("lottie-note"),
             lottie(name)
-                .looping(true)
-                .autoplay(true)
                 .speed(speed)
-                // The id before the height: a decorator takes the id of what it wraps, and the web
-                // arms need it on the engine itself so `web_eval` can reach the player.
                 .id("lottie-view")
                 .height(PLAYGROUND_STAGE),
-            facts(move || animation(selected.get())),
+            facts(current),
             playback(speed),
         ))
         .spacing(12.0)

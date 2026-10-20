@@ -26,7 +26,7 @@ use day_core::{BuildCx, Piece, RNode};
 // leaf, and patches through JavaScript rather than through the tree.
 #[cfg(not(feature = "web"))]
 use day_core::{Flex, with_tree};
-use day_pieces::{IntoReactive, IntoText, Reactive, TextSource};
+use day_pieces::{Decorated, IntoReactive, IntoText, Reactive, TextSource};
 #[cfg(not(feature = "web"))]
 use day_reactive::bind_seeded;
 
@@ -92,15 +92,16 @@ pub fn lottie<M>(name: impl IntoText<M>) -> Lottie {
     }
 }
 
+#[day_pieces::builder(LottieBuilder)]
 impl Lottie {
-    /// Loop the animation (default true).
-    pub fn looping(mut self, looping: bool) -> Self {
-        self.looping = looping;
+    /// Play the animation once instead of looping it (the default loops).
+    pub fn no_loop(mut self) -> Self {
+        self.looping = false;
         self
     }
-    /// Play immediately on appear (default true).
-    pub fn autoplay(mut self, autoplay: bool) -> Self {
-        self.autoplay = autoplay;
+    /// Start paused instead of playing on appear (the default autoplays).
+    pub fn no_autoplay(mut self) -> Self {
+        self.autoplay = false;
         self
     }
     /// Playback rate multiplier: a constant, a `Signal<f64>`, or a `Fn() -> f64`. When it's
@@ -177,39 +178,3 @@ fn build_view(l: Lottie, cx: &mut BuildCx) -> RNode {
 // ---------------------------------------------------------------------------
 
 day_pieces::glue_modules!(uikit, mdc);
-
-// --- Typed builders, forwarded through `Decorated` (docs/api-style.md) ---
-
-/// [`Lottie`]'s own builders, reachable through a decoration (§5.2): `day_pieces::Decorated` forwards them
-/// to the piece it wraps, so generic modifiers and typed ones chain in any order.
-pub trait LottieBuilder: Sized {
-    fn looping(self, looping: bool) -> Self;
-    fn autoplay(self, autoplay: bool) -> Self;
-    fn speed<M>(self, speed: impl IntoReactive<f64, M>) -> Self;
-}
-
-impl LottieBuilder for Lottie {
-    fn looping(self, looping: bool) -> Self {
-        Lottie::looping(self, looping)
-    }
-    fn autoplay(self, autoplay: bool) -> Self {
-        Lottie::autoplay(self, autoplay)
-    }
-    fn speed<M>(self, speed: impl IntoReactive<f64, M>) -> Self {
-        Lottie::speed(self, speed)
-    }
-}
-
-impl<Inner: LottieBuilder + day_pieces::prelude::Piece> LottieBuilder
-    for day_pieces::Decorated<Inner>
-{
-    fn looping(self, looping: bool) -> Self {
-        self.map_inner(|inner_piece| inner_piece.looping(looping))
-    }
-    fn autoplay(self, autoplay: bool) -> Self {
-        self.map_inner(|inner_piece| inner_piece.autoplay(autoplay))
-    }
-    fn speed<M>(self, speed: impl IntoReactive<f64, M>) -> Self {
-        self.map_inner(|inner_piece| inner_piece.speed(speed))
-    }
-}

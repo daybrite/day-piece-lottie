@@ -7,6 +7,9 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 ## Unreleased
 
+- Changed: `.looping(false)` is now `.no_loop()` and `.autoplay(false)` is `.no_autoplay()`
+  (both were on by default and still are). `LottieBuilder` is generated from the piece's
+  builders, so `.speed(..)` and the rest chain after any `Decorate` modifier as before.
 - New: the web-view arm. Every backend without a native Lottie player — macOS, Linux, Windows,
   HarmonyOS and the web — now plays the same file with Airbnb's lottie-web, vendored under
   `web/` and shown through `day-piece-webview`. `lottie("hello")` is the whole API on all of
