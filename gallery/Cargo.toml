@@ -12,7 +12,7 @@ publish = false
 # can never drift apart.
 #
 # A library of pages rather than an app: no window, no backend features, its strings in a private
-# catalog (resource/locales, https://daybrite.dev/docs/localization "Private catalogs"), and its
+# catalog (resource/locales, https://daybrite.dev/docs/how-to/localization "Private catalogs"), and its
 # animations in a data-asset directory that `day build` stages into whichever app depends on it,
 # under this crate's name (below). The host copies nothing. Like the piece, every day dependency
 # names the bare canonical URL so the app's Cargo.lock picks one day revision for the whole graph.

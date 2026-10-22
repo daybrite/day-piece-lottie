@@ -40,7 +40,7 @@ macro_rules! asset {
 }
 
 day::routes! {
-    /// One route per page (https://daybrite.dev/docs/navigation). The key is the host's route,
+    /// One route per page (https://daybrite.dev/docs/how-to/navigation). The key is the host's route,
     /// which day-dom reflects into the URL hash, so `…/#switch` opens that animation, and it is
     /// what `dayscript`'s `navigate:` addresses. Each animation's key is its file's name under
     /// `animations/`, so one name is the route, the id of the view on that page, and the name its

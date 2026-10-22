@@ -20,7 +20,7 @@ use day_piece_lottie_gallery::{self as gallery, LottiePage};
 // The mobile and web entry point; a plain cargo desktop build enters through src/main.rs.
 day::day_start!(options: window(), root);
 
-// Typed constants for everything under `resource/` (https://daybrite.dev/docs/resources).
+// Typed constants for everything under `resource/` (https://daybrite.dev/docs/how-to/resources).
 day::resources!();
 
 /// The window every entry point opens.

@@ -10,7 +10,7 @@ license = "MPL-2.0"
 # from git, exactly as they depend on day.
 publish = false
 
-# An external Day Piece (https://daybrite.dev/docs/extending): a cross-platform front end in Rust
+# An external Day Piece (https://daybrite.dev/contributing/extending): a cross-platform front end in Rust
 # (src/lib.rs, src/model.rs) plus a per-toolkit native backend, registered link-time into each
 # backend's renderer slice without touching any day crate. It is the reference for a piece that
 # pulls a third-party native package on each platform:
