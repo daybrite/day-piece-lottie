@@ -26,7 +26,7 @@ publish = false
 [features]
 # The two backends with a native Lottie player of their own.
 uikit = ["dep:day-uikit", "dep:objc2", "dep:objc2-foundation", "dep:objc2-ui-kit"]
-mdc = ["dep:day-android"]
+mdc = ["dep:day-mdc", "dep:day-android-runtime"]
 # The rest play the animation with lottie-web inside a web view (src/web.rs). Each enables the
 # matching backend of day-piece-webview, which is what carries the engine binding; this crate
 # only composes it.
@@ -63,7 +63,8 @@ day-reactive = { git = "https://github.com/daybrite/day.git" }
 # The timer behind the web arm's wait for the player page to load (src/web.rs).
 day-async = { git = "https://github.com/daybrite/day.git" }
 day-uikit = { git = "https://github.com/daybrite/day.git", optional = true }
-day-android = { git = "https://github.com/daybrite/day.git", optional = true }
+day-mdc = { git = "https://github.com/daybrite/day.git", optional = true }
+day-android-runtime = { git = "https://github.com/daybrite/day.git", optional = true }
 # The engine binding the web-view arm composes. The bare canonical URL, for the same reason the
 # day crates carry one: an app and this piece must resolve one copy of it.
 day-piece-webview = { git = "https://github.com/daybrite/day-piece-webview.git", optional = true }

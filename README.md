@@ -165,7 +165,7 @@ file itself, as does the browser frame on `web-dom`, where the asset tree is ser
 | Model reader | [serde_json](https://github.com/serde-rs/json) 1 parses the JSON document. |
 | Web-view backends | [day-piece-webview](https://github.com/daybrite/day-piece-webview) binds each platform's engine; [day-async](https://github.com/daybrite/day/tree/main/crates/day-async) times the wait for the player page to load. [lottie-web](https://github.com/airbnb/lottie-web) 5.13.0 (MIT) is vendored under [web/](web/) with its licence and provenance. |
 | iOS feature `uikit` | [day-uikit](https://github.com/daybrite/day/tree/main/toolkits/day-uikit), [objc2](https://github.com/madsmtm/objc2) 0.6, [objc2-foundation](https://github.com/madsmtm/objc2) 0.3, and [objc2-ui-kit](https://github.com/madsmtm/objc2) 0.3; SwiftPM adds the `Lottie` product from [airbnb/lottie-ios](https://github.com/airbnb/lottie-ios), with a compatible version starting at 4.5.0. |
-| Android feature `mdc` | [day-android](https://github.com/daybrite/day/tree/main/toolkits/day-android); Gradle adds [com.airbnb.android:lottie:6.6.0](https://github.com/airbnb/lottie-android) and its transitive Android dependencies. |
+| Android feature `mdc` | [day-mdc](https://github.com/daybrite/day/tree/main/toolkits/day-mdc); Gradle adds [com.airbnb.android:lottie:6.6.0](https://github.com/airbnb/lottie-android) and its transitive Android dependencies. |
 | Tests | [day-mock](https://github.com/daybrite/day/tree/main/crates/day-mock) for host-side piece tests. |
 
 [src/model.rs](src/model.rs) extracts timing, dimensions, layers, asset references,
