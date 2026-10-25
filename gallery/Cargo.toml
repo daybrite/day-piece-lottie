@@ -39,7 +39,7 @@ arkui = ["day-piece-lottie/arkui"]
 dom = ["day-piece-lottie/dom"]
 
 [dependencies]
-day = { git = "https://github.com/daybrite/day.git" }
+day = { package = "day-app", git = "https://github.com/daybrite/day.git" }
 day-localization-ui = { git = "https://github.com/daybrite/day.git" }
 day-piece-lottie = { path = ".." }
 
