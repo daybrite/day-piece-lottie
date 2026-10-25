@@ -177,4 +177,4 @@ fn build_view(l: Lottie, cx: &mut BuildCx) -> RNode {
 // its backend's `RENDERERS` slice; `#[cfg]` gates each to its feature + target.
 // ---------------------------------------------------------------------------
 
-day_pieces::glue_modules!(uikit, mdc);
+day_pieces::glue_modules!(uikit, material);

@@ -37,7 +37,7 @@ flow:
       id: lottie_example:hello
       script: "document.body.getAttribute('data-day-lottie')"
       text: playing
-      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom, arkui]
+      skip_on: [ios-uikit, android-material, linux-gtk, web-dom, arkui]
   - screenshot: { name: hello, title: "Hello (square)" }
 
   - navigate: { route: hamburger-arrow }
@@ -95,7 +95,7 @@ flow:
       id: lottie_example:pin-jump
       script: "document.body.getAttribute('data-day-lottie')"
       text: playing
-      skip_on: [ios-uikit, android-mdc, linux-gtk, web-dom, arkui]
+      skip_on: [ios-uikit, android-material, linux-gtk, web-dom, arkui]
   - screenshot: { name: pin-jump, title: "Pin jump" }
 
   - navigate: { route: twitter-heart }

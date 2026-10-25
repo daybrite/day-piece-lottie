@@ -5,16 +5,16 @@
 // Android: a LottieAnimationView from com.airbnb.android:lottie, created by this crate's Java
 // (src/DayLottie.java), folded into the app's Gradle build via
 // [package.metadata.day.android] (which also declares the Gradle dependency), without touching
-// day-mdc. Rust calls its own class through the re-exported `jni`.
+// day-toolkit-material. Rust calls its own class through the re-exported `jni`.
 // ---------------------------------------------------------------------------
 
 use super::*;
-use day_mdc::jni::objects::JString;
-use day_mdc::{AHandle, Android, java};
+use day_toolkit_material::jni::objects::JString;
+use day_toolkit_material::{AHandle, Material, java};
 use day_spec::NodeId;
 
 // This piece's Java class (src/DayLottie.java, on the app classpath at build).
-day_mdc::java_class! {
+day_toolkit_material::java_class! {
     DayLottie => dev.daybrite.day.piece.lottie.DayLottie,
     methods {
         static fn makeLottie(name: JString, looping: jboolean, autoplay: jboolean, speed: jfloat)
@@ -24,16 +24,16 @@ day_mdc::java_class! {
     },
 }
 
-fn make(_backend: &mut Android, p: &LottieProps, _id: NodeId) -> AHandle {
+fn make(_backend: &mut Material, p: &LottieProps, _id: NodeId) -> AHandle {
     // A Java throw (e.g. the Lottie dependency missing from the app build) must not panic
     // inside realize: the panic unwinds the JNI up-call and aborts. Placeholder instead.
-    day_mdc::realize("lottie", |env| {
+    day_toolkit_material::realize("lottie", |env| {
         let name = JString::from_str(env, &p.name)?;
         DayLottie::makeLottie(env, &name, p.looping, p.autoplay, p.speed as f32)
     })
 }
 
-fn update(_backend: &mut Android, h: &AHandle, patch: &LottiePatch) {
+fn update(_backend: &mut Material, h: &AHandle, patch: &LottiePatch) {
     match patch {
         LottiePatch::Speed(s) => {
             java(|env| DayLottie::setSpeed(env, h.0.as_obj(), *s as f32));
@@ -48,7 +48,7 @@ fn update(_backend: &mut Android, h: &AHandle, patch: &LottiePatch) {
 }
 
 // looping/autoplay are set once at build; `name` and `speed` patch. `fill_measure` gives the uniform
-// growing-leaf sizing (which day-mdc's `measure: None` default would otherwise collapse).
-day_pieces::renderer!(day_mdc::RENDERERS, Android,
+// growing-leaf sizing (which day-toolkit-material's `measure: None` default would otherwise collapse).
+day_pieces::renderer!(day_toolkit_material::RENDERERS, Material,
     kind: KIND, props: LottieProps, patch: LottiePatch, make: make, update: update,
     measure: day_pieces::fill_measure);

@@ -4,7 +4,7 @@
 // The day-piece-lottie crate's Android backend: a Java shim over airbnb/lottie-android. It is
 // bundled with this crate and folded into the app's Gradle build via
 // [package.metadata.day.android] (which also declares the com.airbnb.android:lottie dependency),
-// with no edits to day-mdc. It uses only day-mdc's public surface (DayBridge.ctx). It is
+// with no edits to day-toolkit-material. It uses only day-toolkit-material's public surface (DayBridge.ctx). It is
 // the Android twin of platform/ios/swift/DayLottie.swift.
 package dev.daybrite.day.piece.lottie;
 

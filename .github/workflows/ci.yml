@@ -54,7 +54,7 @@ jobs:
       matrix:
         include:
           - { os: macos-15, target: aarch64-apple-ios-sim, features: uikit }
-          - { os: ubuntu-latest, target: aarch64-linux-android, features: mdc }
+          - { os: ubuntu-latest, target: aarch64-linux-android, features: material }
           # The web arm, through the one of its six backends that needs no system libraries.
           - { os: macos-15, target: aarch64-apple-darwin, features: appkit }
     runs-on: ${{ matrix.os }}
@@ -94,7 +94,7 @@ jobs:
         linux-gtk,
         linux-qt,
         windows-winui,
-        android-mdc,
+        android-material,
         harmony-arkui,
         web-dom
       # Edge and the WebView2 SDK do not supply the runtime used by the Windows player.

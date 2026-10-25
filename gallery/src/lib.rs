@@ -29,7 +29,7 @@ use day::prelude::*;
 use day_piece_lottie::{LottieModel, lottie};
 
 // Typed accessors for this crate's own strings: `res::str::anim_hello()` and friends.
-day_fluent::locales!();
+day_localization_ui::locales!();
 
 /// Where `day build` stages `animations/` in the host's bundle: this crate's name, which is not
 /// configurable (day docs/extending.md "Data assets a piece ships").
@@ -41,7 +41,7 @@ macro_rules! asset {
 
 day::routes! {
     /// One route per page (https://daybrite.dev/docs/how-to/navigation). The key is the host's route,
-    /// which day-dom reflects into the URL hash, so `…/#switch` opens that animation, and it is
+    /// which day-toolkit-dom reflects into the URL hash, so `…/#switch` opens that animation, and it is
     /// what `dayscript`'s `navigate:` addresses. Each animation's key is its file's name under
     /// `animations/`, so one name is the route, the id of the view on that page, and the name its
     /// screenshot is filed under.

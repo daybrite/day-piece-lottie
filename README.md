@@ -44,7 +44,7 @@ the piece out of an engine each platform already ships.
 | Use | Supported targets | Behavior |
 |---|---|---|
 | Animation playback | `ios-uikit` | [Lottie for iOS](https://github.com/airbnb/lottie-ios): SwiftPM `Lottie` product, compatible versions starting at 4.5.0. |
-| Animation playback | `android-mdc` | [Lottie for Android](https://github.com/airbnb/lottie-android): Gradle `com.airbnb.android:lottie:6.6.0`. |
+| Animation playback | `android-material` | [Lottie for Android](https://github.com/airbnb/lottie-android): Gradle `com.airbnb.android:lottie:6.6.0`. |
 | Animation playback | `macos-appkit`, `macos-qt`, `linux-gtk`, `linux-qt`, `windows-winui`, `windows-qt`, `harmony-arkui`, `web-dom` | lottie-web 5.13.0 in a web view: WebKit, WebKitGTK, QtWebEngine, WebView2, ArkWeb, or the browser's own frame. |
 | Animation playback | `macos-gtk`, `windows-gtk` | No WebKitGTK on those hosts, so there is no engine to host the player and the view realizes Day's placeholder. |
 | Metadata parsing and verification | All Rust targets supported by the crate | No native player or backend feature required. |
@@ -111,7 +111,7 @@ gallery(Signal::new(LottiePage::PinJump)) // every animation behind one picker, 
 ```
 
 List the targets in the app's `Day.toml` and give the app the matching Day backend
-features (see [demo/Cargo.toml](demo/Cargo.toml)). Run `day build -p android-mdc` or
+features (see [demo/Cargo.toml](demo/Cargo.toml)). Run `day build -p android-material` or
 `day launch -p macos-appkit` with that platform's SDK installed. Day enables the piece's
 matching backend feature, bundles the animation and the player's own web assets, and
 incorporates its SwiftPM and Gradle dependencies. A plain Cargo build does not perform that
@@ -164,8 +164,8 @@ file itself, as does the browser frame on `web-dom`, where the asset tree is ser
 | Shared Rust | [day-core](https://github.com/daybrite/day/tree/main/crates/day-core), [day-spec](https://github.com/daybrite/day/tree/main/crates/day-spec), [day-pieces](https://github.com/daybrite/day/tree/main/crates/day-pieces), and [day-reactive](https://github.com/daybrite/day/tree/main/crates/day-reactive) provide the tree, common types, builders, and bindings. [linkme](https://github.com/dtolnay/linkme) 0.3 registers renderers; [log](https://github.com/rust-lang/log) 0.4 provides diagnostics. |
 | Model reader | [serde_json](https://github.com/serde-rs/json) 1 parses the JSON document. |
 | Web-view backends | [day-piece-webview](https://github.com/daybrite/day-piece-webview) binds each platform's engine; [day-async](https://github.com/daybrite/day/tree/main/crates/day-async) times the wait for the player page to load. [lottie-web](https://github.com/airbnb/lottie-web) 5.13.0 (MIT) is vendored under [web/](web/) with its licence and provenance. |
-| iOS feature `uikit` | [day-uikit](https://github.com/daybrite/day/tree/main/toolkits/day-uikit), [objc2](https://github.com/madsmtm/objc2) 0.6, [objc2-foundation](https://github.com/madsmtm/objc2) 0.3, and [objc2-ui-kit](https://github.com/madsmtm/objc2) 0.3; SwiftPM adds the `Lottie` product from [airbnb/lottie-ios](https://github.com/airbnb/lottie-ios), with a compatible version starting at 4.5.0. |
-| Android feature `mdc` | [day-mdc](https://github.com/daybrite/day/tree/main/toolkits/day-mdc); Gradle adds [com.airbnb.android:lottie:6.6.0](https://github.com/airbnb/lottie-android) and its transitive Android dependencies. |
+| iOS feature `uikit` | [day-toolkit-uikit](https://github.com/daybrite/day/tree/main/crates/day-toolkit-uikit), [objc2](https://github.com/madsmtm/objc2) 0.6, [objc2-foundation](https://github.com/madsmtm/objc2) 0.3, and [objc2-ui-kit](https://github.com/madsmtm/objc2) 0.3; SwiftPM adds the `Lottie` product from [airbnb/lottie-ios](https://github.com/airbnb/lottie-ios), with a compatible version starting at 4.5.0. |
+| Android feature `material` | [day-toolkit-material](https://github.com/daybrite/day/tree/main/crates/day-toolkit-material); Gradle adds [com.airbnb.android:lottie:6.6.0](https://github.com/airbnb/lottie-android) and its transitive Android dependencies. |
 | Tests | [day-mock](https://github.com/daybrite/day/tree/main/crates/day-mock) for host-side piece tests. |
 
 [src/model.rs](src/model.rs) extracts timing, dimensions, layers, asset references,
@@ -189,9 +189,9 @@ by path and is a complete integration example.
 
 Run `cargo test` for the model and host checks. From `demo/`, run
 `day launch -p macos-appkit --script dayscript/lottie.yaml --script dayscript/gallery.yaml`,
-or the same command with `-p ios-uikit`, `-p android-mdc`, `-p web-dom`, or any other target in
+or the same command with `-p ios-uikit`, `-p android-material`, `-p web-dom`, or any other target in
 [demo/Day.toml](demo/Day.toml). CI runs both scripts on all eight primary platform-toolkit
-pairs: `macos-appkit`, `ios-uikit`, `linux-gtk`, `linux-qt`, `windows-winui`, `android-mdc`,
+pairs: `macos-appkit`, `ios-uikit`, `linux-gtk`, `linux-qt`, `windows-winui`, `android-material`,
 `harmony-arkui`, and `web-dom`. After all eight pass, main builds and release tags update
 the demo site. The latest release's web build is hosted at
 [/webapp/](https://daybrite.github.io/day-piece-lottie/webapp/), and this run's build at

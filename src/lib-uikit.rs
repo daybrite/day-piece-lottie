@@ -14,7 +14,7 @@ use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
 
 use day_spec::NodeId;
-use day_uikit::Uikit;
+use day_toolkit_uikit::Uikit;
 use objc2::rc::Retained;
 use objc2_ui_kit::UIView;
 
@@ -75,6 +75,6 @@ fn update(_backend: &mut Uikit, h: &Retained<UIView>, patch: &LottiePatch) {
 }
 
 // looping/autoplay are set once at build; `name` and `speed` patch.
-day_pieces::renderer!(day_uikit::RENDERERS, Uikit,
+day_pieces::renderer!(day_toolkit_uikit::RENDERERS, Uikit,
     kind: KIND, props: LottieProps, patch: LottiePatch, make: make, update: update,
     measure: day_pieces::fill_measure);

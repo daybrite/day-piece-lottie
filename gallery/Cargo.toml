@@ -25,11 +25,11 @@ assets = ["animations"]
 # for the app's direct dependencies (cargo allows `<pkg>/<feature>` for no other), so a host that
 # depends on this crate alone reaches the player through these, the way day-piece-lottie reaches
 # day-piece-webview.
-backends = ["uikit", "mdc", "appkit", "gtk", "qt", "xaml", "winui", "arkui", "dom"]
+backends = ["uikit", "material", "appkit", "gtk", "qt", "xaml", "winui", "arkui", "dom"]
 
 [features]
 uikit = ["day-piece-lottie/uikit"]
-mdc = ["day-piece-lottie/mdc"]
+material = ["day-piece-lottie/material"]
 appkit = ["day-piece-lottie/appkit"]
 gtk = ["day-piece-lottie/gtk"]
 qt = ["day-piece-lottie/qt"]
@@ -40,7 +40,7 @@ dom = ["day-piece-lottie/dom"]
 
 [dependencies]
 day = { git = "https://github.com/daybrite/day.git" }
-day-fluent = { git = "https://github.com/daybrite/day.git" }
+day-localization-ui = { git = "https://github.com/daybrite/day.git" }
 day-piece-lottie = { path = ".." }
 
 [build-dependencies]

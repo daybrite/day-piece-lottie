@@ -34,7 +34,7 @@ day doctor                                            # the toolchains for the t
 day launch -p macos-appkit --script dayscript/lottie.yaml --script dayscript/gallery.yaml
 day launch -p web-dom      --script dayscript/gallery.yaml
 day launch -p ios-uikit    --script dayscript/lottie.yaml
-day launch -p android-mdc  --script dayscript/lottie.yaml
+day launch -p android-material  --script dayscript/lottie.yaml
 ```
 
 The scripts are the test. `dayscript/lottie.yaml` asserts every fact on the playground page,
