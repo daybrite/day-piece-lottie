@@ -116,10 +116,6 @@ jobs:
       target-packages: |
         windows-winui: webview2-runtime
       day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
-      # On a version tag, after every leg passed: the library crates to crates.io.
-      publish-crates: true
-      # The piece, then the gallery, which depends on the piece.
-      publish-crates-paths: . gallery
       scripts: dayscript/lottie.yaml dayscript/gallery.yaml
       preflight-checks: fmt, clippy, test
       # Publish after all eight targets pass, on main builds and release tags. The latest
@@ -130,3 +126,23 @@ jobs:
         device=iPhone, orientation=portrait
       android-devices: |
         device=pixel_7,     os=36, orientation=portrait
+
+  # On a version tag, once the checks above passed: the crates to crates.io (the piece, then the gallery, which depends on it), through
+  # Trusted Publishing (daybrite/actions' publish-crates). It does not wait for the demo legs,
+  # whose emulators and packaging gate the demo's release, not the library's. Each crate's trusted
+  # publisher on crates.io names this repository, ci.yml, and the environment `release`.
+  publish:
+    name: publish (crates.io)
+    needs: [host, cross-check]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: daybrite/actions/.github/actions/publish-crates@v1
+        with:
+          path: . gallery
