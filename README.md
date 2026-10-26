@@ -45,8 +45,8 @@ the piece out of an engine each platform already ships.
 |---|---|---|
 | Animation playback | `ios-uikit` | [Lottie for iOS](https://github.com/airbnb/lottie-ios): SwiftPM `Lottie` product, compatible versions starting at 4.5.0. |
 | Animation playback | `android-material` | [Lottie for Android](https://github.com/airbnb/lottie-android): Gradle `com.airbnb.android:lottie:6.6.0`. |
-| Animation playback | `macos-appkit`, `macos-qt`, `linux-gtk`, `linux-qt`, `windows-winui`, `windows-qt`, `harmony-arkui`, `web-dom` | lottie-web 5.13.0 in a web view: WebKit, WebKitGTK, QtWebEngine, WebView2, ArkWeb, or the browser's own frame. |
-| Animation playback | `macos-gtk`, `windows-gtk` | No WebKitGTK on those hosts, so there is no engine to host the player and the view realizes Day's placeholder. |
+| Animation playback | `macos-appkit`, `macos-qt`, `linux-gtk`, `linux-qt`, `windows-winui`, `harmony-arkui`, `web-dom` | lottie-web 5.13.0 in a web view: WebKit, WebKitGTK, QtWebEngine, WebView2, ArkWeb, or the browser's own frame. |
+| Animation playback | `macos-gtk` | No WebKitGTK on macOS, so there is no engine to host the player and the view realizes Day's placeholder. |
 | Metadata parsing and verification | All Rust targets supported by the crate | No native player or backend feature required. |
 
 Only the animation name and speed update reactively. Looping and autoplay are fixed

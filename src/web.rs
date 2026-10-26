@@ -28,7 +28,7 @@
 //!   changing either afterwards means evaluating something. A name or speed that changes later
 //!   reaches the view on the backends that evaluate, and elsewhere takes effect the next time the
 //!   piece is built — which navigation does anyway.
-//! * `macos-gtk` and `windows-gtk` have no WebKitGTK at all, so there is no engine to host the
+//! * `macos-gtk` has no WebKitGTK at all, so there is no engine to host the
 //!   player; the view reports [`day_spec::Support::Unsupported`] and realizes the placeholder,
 //!   the same answer `day_piece_webview` gives there.
 

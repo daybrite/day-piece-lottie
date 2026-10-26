@@ -91,9 +91,9 @@ jobs:
   # All eight primary platform-toolkit pairs, because the player differs by platform: iOS and
   # Android hand the file to Airbnb's renderer, and the other six play it with lottie-web inside
   # a web view, which means six different engines and six different asset roots to resolve the
-  # file through. The four `extra` pairs (macos-gtk, macos-qt, windows-gtk, windows-qt) are
-  # declared in demo/Day.toml and buildable by hand; macos-gtk and windows-gtk have no WebKitGTK
-  # to host the player at all, so the view reports Unsupported there.
+  # file through. The two `extra` pairs (macos-gtk, macos-qt) are declared in demo/Day.toml and
+  # buildable by hand; macos-gtk has no WebKitGTK to host the player at all, so the view reports
+  # Unsupported there.
   demo:
     uses: daybrite/actions/.github/workflows/dayapp.yml@v1
     permissions:
