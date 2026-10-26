@@ -72,7 +72,7 @@ In an existing Day app's `Cargo.toml`, add:
 
 ```toml
 [dependencies]
-day-piece-lottie = { git = "https://github.com/daybrite/day-piece-lottie.git" }
+day-piece-lottie = "0.4"
 ```
 
 Put an animation at `resource/assets/hello.json`. Return the piece from your UI
@@ -101,7 +101,7 @@ animations), depend on its gallery instead of copying them. The animations arriv
 the gallery's data assets, and the gallery switches the player's backends on for you:
 
 ```toml
-day-piece-lottie-gallery = { git = "https://github.com/daybrite/day-piece-lottie.git" }
+day-piece-lottie-gallery = "0.1"
 ```
 
 ```rust

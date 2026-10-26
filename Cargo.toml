@@ -6,9 +6,6 @@ rust-version = "1.89"
 description = "Lottie animations for Day apps, on every platform Day supports"
 repository = "https://github.com/daybrite/day-piece-lottie"
 license = "MPL-2.0"
-# The day framework crates are not on crates.io yet; neither is this one. Apps depend on it
-# from git, exactly as they depend on day.
-publish = false
 
 # An external Day Piece (https://daybrite.dev/contributing/extending): a cross-platform front end in Rust
 # (src/lib.rs, src/model.rs) plus a per-toolkit native backend, registered link-time into each
@@ -56,18 +53,18 @@ backends = ["uikit", "material", "appkit", "gtk", "qt", "xaml", "winui", "arkui"
 assets = ["web"]
 
 [dependencies]
-day-spec = { git = "https://github.com/daybrite/day.git" }
-day-core = { git = "https://github.com/daybrite/day.git" }
-day-pieces = { git = "https://github.com/daybrite/day.git" }
-day-reactive = { git = "https://github.com/daybrite/day.git" }
+day-spec = "0.6"
+day-core = "0.6"
+day-pieces = "0.6"
+day-reactive = "0.6"
 # The timer behind the web arm's wait for the player page to load (src/web.rs).
-day-async = { git = "https://github.com/daybrite/day.git" }
-day-toolkit-uikit = { git = "https://github.com/daybrite/day.git", optional = true }
-day-toolkit-material = { git = "https://github.com/daybrite/day.git", optional = true }
-day-platform-android = { git = "https://github.com/daybrite/day.git", optional = true }
+day-async = "0.6"
+day-toolkit-uikit = { version = "0.6", optional = true }
+day-toolkit-material = { version = "0.6", optional = true }
+day-platform-android = { version = "0.6", optional = true }
 # The engine binding the web-view arm composes. The bare canonical URL, for the same reason the
 # day crates carry one: an app and this piece must resolve one copy of it.
-day-piece-webview = { git = "https://github.com/daybrite/day-piece-webview.git", optional = true }
+day-piece-webview = { version = "0.4", optional = true }
 log = "0.4"
 linkme = "0.3"
 # The headless model reader (src/model.rs). Already in every Day app's graph through day-script.
@@ -77,7 +74,7 @@ objc2-foundation = { version = "0.3", optional = true, features = ["NSString"] }
 objc2-ui-kit = { version = "0.3", optional = true, features = ["UIView", "UIResponder"] }
 
 [dev-dependencies]
-day-mock = { git = "https://github.com/daybrite/day.git" }
+day-mock = "0.6"
 
 # --- Android backend contribution ---
 # The day CLI reads this from `cargo metadata` and folds it into the app's Gradle build.

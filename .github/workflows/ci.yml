@@ -4,18 +4,25 @@ name: ci
 #   host        does the crate build, lint, and pass its host tests (the headless reader)?
 #   cross-check do the native halves compile for the targets they claim?
 #   demo        do the two walkthroughs pass on all eight primary platform-toolkit pairs,
-#               against day's newest main?
+#               against day's main or newest release?
 #
-# No Cargo.lock is committed, here or in demo/: this crate tracks an unpublished framework by
-# its bare git URL, so every run resolves day afresh at the tip of main and proves the crate
-# against it. A red run after a day push is the signal, not a nuisance, and there is no pinned
-# lock for a local `day patch` table to rewrite and commit by accident.
+# No Cargo.lock is committed, here or in demo/: every run resolves day afresh. A push builds against the
+# head of day's main (and of every other Day repository it uses), and the nightly run against
+# the newest releases on crates.io (daybrite/actions' day-deps). A red push run after a day push
+# is the signal, not a nuisance; a red nightly run means this crate needs a day that is not
+# released yet. There is no pinned lock for a local `day patch` table to rewrite and commit by
+# accident.
 on:
   push:
     branches: ["**"]
     tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      day-main:
+        description: Build against day's main branch instead of the newest release
+        type: boolean
+        default: false
   schedule:
     # Daily: day's main moves, and so do lottie-ios and lottie-android, on weeks nobody pushes.
     - cron: "0 9 * * *"
@@ -32,6 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
+      # Day from crates.io, or from main on a push (daybrite/actions day-deps).
+      - uses: daybrite/actions/.github/actions/day-deps@v1
+        with:
+          day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
       # tests/model.rs, against tests/data/*.json: the same facts dayscript/lottie.yaml asserts
@@ -63,10 +74,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      # Day from crates.io, or from main on a push (daybrite/actions day-deps).
+      - uses: daybrite/actions/.github/actions/day-deps@v1
+        with:
+          day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
       - run: cargo clippy --target ${{ matrix.target }} --features ${{ matrix.features }} -- -D warnings
 
   # The proof: the demo app, driven end to end on every target by the shared Day workflow. It
-  # builds against day's newest main, runs both dayscripts, and fails on a failed assertion or a
+  # builds against day's main or newest release, runs both dayscripts, and fails on a failed assertion or a
   # blank capture. Captures are uploaded per target, and a tag build attaches them to the release.
   #
   # Two scripts: lottie.yaml drives the playground — the reader's facts for three files, a picker
@@ -100,7 +115,11 @@ jobs:
       # Edge and the WebView2 SDK do not supply the runtime used by the Windows player.
       target-packages: |
         windows-winui: webview2-runtime
-      update-day-deps: true
+      day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
+      # On a version tag, after every leg passed: the library crates to crates.io.
+      publish-crates: true
+      # The piece, then the gallery, which depends on the piece.
+      publish-crates-paths: . gallery
       scripts: dayscript/lottie.yaml dayscript/gallery.yaml
       preflight-checks: fmt, clippy, test
       # Publish after all eight targets pass, on main builds and release tags. The latest
