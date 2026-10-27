@@ -1,17 +1,11 @@
 name: ci
 
-# Three questions, answered on every push and once a day:
-#   host        does the crate build, lint, and pass its host tests (the headless reader)?
-#   cross-check do the native halves compile for the targets they claim?
-#   demo        do the two walkthroughs pass on all eight primary platform-toolkit pairs,
-#               against day's main or newest release?
-#
-# No Cargo.lock is committed, here or in demo/: every run resolves day afresh. A push builds against the
-# head of day's main (and of every other Day repository it uses), and the nightly run against
-# the newest releases on crates.io (daybrite/actions' day-deps). A red push run after a day push
-# is the signal, not a nuisance; a red nightly run means this crate needs a day that is not
-# released yet. There is no pinned lock for a local `day patch` table to rewrite and commit by
-# accident.
+# The shared Day library workflow (daybrite/actions' daylib.yml) reads what to check from this
+# repository's manifests: clippy and test on Linux, macOS and Windows, with each toolkit feature on
+# the OS it draws on; clippy for the mobile and web targets demo/Day.toml declares, and the demo's
+# walkthrough on every one of them. A push builds against the head of day's main and of every other
+# Day repository it uses; the nightly run builds against the newest releases on crates.io. A version
+# tag publishes the piece and its gallery once the host and cross-target checks pass.
 on:
   push:
     branches: ["**"]
@@ -24,125 +18,27 @@ on:
         type: boolean
         default: false
   schedule:
-    # Daily: day's main moves, and so do lottie-ios and lottie-android, on weeks nobody pushes.
     - cron: "0 9 * * *"
 
-# The repository's own jobs run this checkout's code with a read-only token. The write grants
-# sit on the job that calls the shared workflow, whose release and Pages jobs alone use them;
-# its build legs, which run this code too, narrow their token to read-only themselves.
 permissions:
   contents: read
 
 jobs:
-  host:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-      # Day from crates.io, or from main on a push (daybrite/actions day-deps).
-      - uses: daybrite/actions/.github/actions/day-deps@v1
-        with:
-          day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --all-targets -- -D warnings
-      # tests/model.rs, against tests/data/*.json: the same facts dayscript/lottie.yaml asserts
-      # on device, asserted on the host in depth.
-      - run: cargo test
-      # The web arm's own unit tests (src/web.rs). `web` without a backend compiles the shared
-      # half of all six web-view backends, which is where the page's URL and the calls into it
-      # are built, and needs no engine to check them.
-      - run: cargo clippy --all-targets --features web -- -D warnings
-      - run: cargo test --features web
-
-  # The native halves compile for their targets. A link is not attempted here (the demo below
-  # does that inside a real app), but a Swift-facing objc2 call that no longer type-checks, or a
-  # JNI signature drift in the Android arm, fails here in a minute rather than in the emulator.
-  # The web arm has no leg here: a wasm32 build needs the getrandom backend and the JS shim that
-  # `day build` supplies, so it is the demo's web-dom leg below that compiles and runs it.
-  cross-check:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: macos-15, target: aarch64-apple-ios-sim, features: uikit }
-          - { os: ubuntu-latest, target: aarch64-linux-android, features: material }
-          # The web arm, through the one of its six backends that needs no system libraries.
-          - { os: macos-15, target: aarch64-apple-darwin, features: appkit }
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      # Day from crates.io, or from main on a push (daybrite/actions day-deps).
-      - uses: daybrite/actions/.github/actions/day-deps@v1
-        with:
-          day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
-      - run: cargo clippy --target ${{ matrix.target }} --features ${{ matrix.features }} -- -D warnings
-
-  # The proof: the demo app, driven end to end on every target by the shared Day workflow. It
-  # builds against day's main or newest release, runs both dayscripts, and fails on a failed assertion or a
-  # blank capture. Captures are uploaded per target, and a tag build attaches them to the release.
-  #
-  # Two scripts: lottie.yaml drives the playground — the reader's facts for three files, a picker
-  # that swaps the running view's animation, and the speed control — and gallery.yaml opens every
-  # bundled animation by its own route and captures it under that name.
-  #
-  # All eight primary platform-toolkit pairs, because the player differs by platform: iOS and
-  # Android hand the file to Airbnb's renderer, and the other six play it with lottie-web inside
-  # a web view, which means six different engines and six different asset roots to resolve the
-  # file through. The two `extra` pairs (macos-gtk, macos-qt) are declared in demo/Day.toml and
-  # buildable by hand; macos-gtk has no WebKitGTK to host the player at all, so the view reports
-  # Unsupported there.
-  demo:
-    uses: daybrite/actions/.github/workflows/dayapp.yml@v1
+  ci:
+    uses: daybrite/actions/.github/workflows/daylib.yml@v1
     permissions:
-      contents: write # release-asset upload on tag builds
-      pages: write    # the project website + web build → GitHub Pages (deploy-web)
-      id-token: write # deploy-pages OIDC token (deploy-web)
+      contents: write # the demo's release assets on a version tag
+      pages: write # the project website
+      id-token: write # crates.io Trusted Publishing, and the Pages deploy
     secrets: inherit
     with:
-      project-path: demo
-      targets: >-
-        macos-appkit,
-        ios-uikit,
-        linux-gtk,
-        linux-qt,
-        windows-winui,
-        android-material,
-        harmony-arkui,
-        web-dom
-      # Edge and the WebView2 SDK do not supply the runtime used by the Windows player.
+      day-main: ${{ inputs.day-main || false }}
+      # The web player is checked beside the default build.
+      feature-sets: --features web
+      # The GTK, Qt and WinUI players are day-piece-webview's backends, which build against the
+      # system's web view.
       target-packages: |
+        linux-gtk: libwebkitgtk-6.0-dev
+        linux-qt: qt6-webengine-dev
         windows-winui: webview2-runtime
-      day-deps: ${{ inputs.day-main && 'main' || 'auto' }}
-      scripts: dayscript/lottie.yaml dayscript/gallery.yaml
-      preflight-checks: fmt, clippy, test
-      # Publish after all eight targets pass, on main builds and release tags. The latest
-      # release's web build lives at /webapp/; this run's build lives at /main/webapp/.
-      # Pull requests and other branches only test.
       deploy-web: true
-      ios-devices: |
-        device=iPhone, orientation=portrait
-      android-devices: |
-        device=pixel_7,     os=36, orientation=portrait
-
-  # On a version tag, once the checks above passed: the crates to crates.io (the piece, then the gallery, which depends on it), through
-  # Trusted Publishing (daybrite/actions' publish-crates). It does not wait for the demo legs,
-  # whose emulators and packaging gate the demo's release, not the library's. Each crate's trusted
-  # publisher on crates.io names this repository, ci.yml, and the environment `release`.
-  publish:
-    name: publish (crates.io)
-    needs: [host, cross-check]
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: daybrite/actions/.github/actions/publish-crates@v1
-        with:
-          path: . gallery
