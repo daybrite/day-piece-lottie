@@ -14,11 +14,8 @@ license = "MPL-2.0"
 #   iOS:      the lottie-ios SwiftPM package  ([package.metadata.day.ios] below)
 #   Android:  com.airbnb.android:lottie       ([package.metadata.day.android] below)
 #
-# Every day dependency names the bare canonical URL, with no branch, tag, or rev. Cargo unifies a
-# git dependency only when URL and ref match, so an app on `git = "…/day.git"` and a piece pinned
-# to a tag would carry two copies of every day crate; leaving the ref off lets the app's
-# Cargo.lock choose one revision for the whole graph. `demo/Cargo.lock` records the revision this
-# release was tested against, and `compat` below says which day minor that is.
+# Daybrite-owned dependencies accept every stable 0.x release. Apps retain a tested
+# dependency set with Cargo.lock; updating it may require source changes.
 
 [features]
 # The two backends with a native Lottie player of their own.
@@ -39,8 +36,8 @@ dom = ["web", "day-piece-webview/dom"]
 web = ["dep:day-piece-webview"]
 
 [package.metadata.day]
-# The day minor this release is built and tested against. `day build` notes a mismatch.
-compat = "0.6"
+# Accept the pre-1.0 series; source compatibility between releases is not guaranteed.
+compat = "0.*"
 
 # Backends this piece carries a native-renderer [features] entry for. `day` unions
 # `<pkg>/<backend>` into an app build, so an app depends on this piece with a plain
@@ -53,18 +50,18 @@ backends = ["uikit", "material", "appkit", "gtk", "qt", "xaml", "winui", "arkui"
 assets = ["web"]
 
 [dependencies]
-day-spec = "0.6"
-day-core = "0.6"
-day-pieces = "0.6"
-day-reactive = "0.6"
+day-spec = "0.*"
+day-core = "0.*"
+day-pieces = "0.*"
+day-reactive = "0.*"
 # The timer behind the web arm's wait for the player page to load (src/web.rs).
-day-async = "0.6"
-day-toolkit-uikit = { version = "0.6", optional = true }
-day-toolkit-material = { version = "0.6", optional = true }
-day-platform-android = { version = "0.6", optional = true }
+day-async = "0.*"
+day-toolkit-uikit = { version = "0.*", optional = true }
+day-toolkit-material = { version = "0.*", optional = true }
+day-platform-android = { version = "0.*", optional = true }
 # The engine binding the web-view arm composes. The bare canonical URL, for the same reason the
 # day crates carry one: an app and this piece must resolve one copy of it.
-day-piece-webview = { version = "0.4", optional = true }
+day-piece-webview = { version = "0.*", optional = true }
 log = "0.4"
 linkme = "0.3"
 # The headless model reader (src/model.rs). Already in every Day app's graph through day-script.
@@ -74,7 +71,7 @@ objc2-foundation = { version = "0.3", optional = true, features = ["NSString"] }
 objc2-ui-kit = { version = "0.3", optional = true, features = ["UIView", "UIResponder"] }
 
 [dev-dependencies]
-day-mock = "0.6"
+day-mock = "0.*"
 
 # --- Android backend contribution ---
 # The day CLI reads this from `cargo metadata` and folds it into the app's Gradle build.

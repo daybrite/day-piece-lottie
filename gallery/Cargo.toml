@@ -38,9 +38,9 @@ arkui = ["day-piece-lottie/arkui"]
 dom = ["day-piece-lottie/dom"]
 
 [dependencies]
-day = { package = "day-app", version = "0.6" }
-day-localization-ui = "0.6"
-day-piece-lottie = { path = "..", version = "0.4" }
+day = { package = "day-app", version = "0.*" }
+day-localization-ui = "0.*"
+day-piece-lottie = { path = "..", version = "0.*" }
 
 [build-dependencies]
-day-build = "0.6"
+day-build = "0.*"
