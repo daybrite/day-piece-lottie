@@ -1,6 +1,6 @@
 [package]
 name = "day-piece-lottie-gallery"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "The day-piece-lottie example pages and their animations, shared by the Lottie Demo app and any app that wants to show them"
 repository = "https://github.com/daybrite/day-piece-lottie"
