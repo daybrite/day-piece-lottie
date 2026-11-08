@@ -285,7 +285,7 @@ fn animation_page(anim: &'static Animation) -> impl Piece {
         lottie(anim.name)
             .speed(speed)
             .id(day::id!(lottie_example, anim.page.key()))
-            .grow(),
+            .grow(Dimension::Both),
         label(summary(anim))
             .font(Font::Caption)
             .id(day::id!(lottie_summary)),
@@ -293,7 +293,7 @@ fn animation_page(anim: &'static Animation) -> impl Piece {
     ))
     .spacing(12.0)
     .padding(16.0)
-    .grow()
+    .grow(Dimension::Both)
 }
 
 /// The size, length and layers the reader finds in the file that is playing above it, in one

@@ -220,7 +220,7 @@ pub(crate) fn build(
         .start_page(start_page(opening, looping, autoplay, initial_speed))
         .js(js);
 
-    // No `.grow()` here: a web view already fills what it is offered, and a decorator around it
+    // No `.grow(Dimension::Both)` here: a web view already fills what it is offered, and a decorator around it
     // would take the id the app puts on `lottie(…)`, leaving the engine unreachable to
     // `web_eval` and to the piece's own patches.
     let node = view.build(cx);
