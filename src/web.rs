@@ -38,6 +38,7 @@ use day_pieces::{Reactive, TextSource};
 use day_reactive::bind_seeded;
 use day_spec::{AssetDir, AssetName, Support};
 use std::cell::Cell;
+use std::fmt::Write as _;
 use std::rc::Rc;
 
 /// Where `[package.metadata.day.piece].assets` stages this crate's `web/` directory in every
@@ -70,7 +71,7 @@ fn encode(name: &str) -> String {
             _ => {
                 let mut buf = [0u8; 4];
                 for b in c.encode_utf8(&mut buf).as_bytes() {
-                    out.push_str(&format!("%{b:02X}"));
+                    let _ = write!(out, "%{b:02X}");
                 }
             }
         }
@@ -101,6 +102,10 @@ fn js_string(s: &str) -> String {
 /// arms hand to Airbnb's renderer, named the way the app named it (`"hello"` → `hello.json`, a
 /// path allowed: `"lottie/pin-jump"`).
 fn animation_text(name: &str) -> Option<String> {
+    #[expect(
+        clippy::case_sensitive_file_extension_comparisons,
+        reason = "a name is completed with the lowercase `.json` the bundle stores, so the check is exact"
+    )]
     let file = if name.ends_with(".json") {
         name.to_string()
     } else {
@@ -117,10 +122,9 @@ fn animation_text(name: &str) -> Option<String> {
 /// The text goes in as a JavaScript object literal, which is what JSON is.
 fn load_call(name: &str, looping: bool, autoplay: bool, speed: f64) -> String {
     match animation_text(name) {
-        Some(json) => format!(
-            "window.dayLottie&&dayLottie.loadData({},{},{},{})",
-            json, looping, autoplay, speed,
-        ),
+        Some(json) => {
+            format!("window.dayLottie&&dayLottie.loadData({json},{looping},{autoplay},{speed})")
+        }
         None => format!(
             "window.dayLottie&&dayLottie.fail({})",
             js_string(&format!("no animation named {name}")),
@@ -256,7 +260,7 @@ pub(crate) fn build(
                         load_call(n, looping, autoplay, initial_speed),
                         turn.clone(),
                         mine,
-                    )
+                    );
                 },
             );
         }

@@ -31,11 +31,15 @@ unsafe extern "C" {
 }
 
 /// `lottie("hello")` means `resource/assets/hello.json`, which `day build` stages into the
-/// bundle's `assets/` (the same file the Android arm reads through AAssetManager). Resolve it to
+/// bundle's `assets/` (the same file the Android arm reads through `AAssetManager`). Resolve it to
 /// a path here: lottie-ios's by-name initializer searches the bundle root, so without this an app
 /// would have to add a second copy of the file to its Xcode project by hand. An empty path leaves
 /// the shim on that by-name path, which is what a project doing so still uses.
 fn name_and_path(name: &str) -> (CString, CString) {
+    #[expect(
+        clippy::case_sensitive_file_extension_comparisons,
+        reason = "a name is completed with the lowercase `.json` the bundle stores, so the check is exact"
+    )]
     let file = if name.ends_with(".json") {
         name.to_string()
     } else {
@@ -64,7 +68,7 @@ fn make(_backend: &mut Uikit, p: &LottieProps, _id: NodeId) -> Retained<UIView> 
 
 fn update(_backend: &mut Uikit, h: &Retained<UIView>, patch: &LottiePatch) {
     // The stored UIView IS the LottieAnimationView; the shim casts the pointer back.
-    let ptr = (&**h as *const UIView) as *mut c_void;
+    let ptr = (&raw const **h) as *mut c_void;
     match patch {
         LottiePatch::Speed(s) => unsafe { day_lottie_set_speed(ptr, *s) },
         LottiePatch::Name(n) => {

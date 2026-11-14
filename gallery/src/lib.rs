@@ -212,8 +212,7 @@ pub fn examples() -> Vec<Entry> {
         ANIMATIONS
             .iter()
             .find(|a| a.page == page)
-            .map(|a| animation_page(a).any())
-            .unwrap_or_else(|| label("").any())
+            .map_or_else(|| label("").any(), |a| animation_page(a).any())
     }
     macro_rules! entry {
         ($page:expr, $title:expr) => {
@@ -245,8 +244,7 @@ pub fn page(page: LottiePage) -> AnyPiece {
     pages()
         .into_iter()
         .find(|e| e.page == page)
-        .map(|e| e.build())
-        .unwrap_or_else(|| label("").any())
+        .map_or_else(|| label("").any(), |e| e.build())
 }
 
 /// Every animation in one page, for a host that gives the animations a single slot in its own

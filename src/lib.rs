@@ -70,6 +70,7 @@ pub enum LottiePatch {
 
 /// A native Lottie animation view. Configure with `.looping(false)` / `.autoplay(false)` and bind the
 /// playback rate reactively with `.speed(signal)`.
+#[must_use]
 pub struct Lottie {
     name: TextSource,
     looping: bool,

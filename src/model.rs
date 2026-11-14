@@ -262,6 +262,11 @@ impl fmt::Display for Issue {
 
 impl LottieModel {
     /// Read a document from its JSON text.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`LottieError::Json`] when the text is not JSON, or the error that says why the
+    /// document is not a Lottie animation.
     pub fn parse(text: &str) -> Result<Self, LottieError> {
         let value: Value =
             serde_json::from_str(text).map_err(|e| LottieError::Json(e.to_string()))?;
@@ -269,6 +274,11 @@ impl LottieModel {
     }
 
     /// Read a document from its JSON bytes (a file read into memory, an asset fetched at run time).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`LottieError::Json`] when the bytes are not JSON, or the error that says why the
+    /// document is not a Lottie animation.
     pub fn from_slice(bytes: &[u8]) -> Result<Self, LottieError> {
         let value: Value =
             serde_json::from_slice(bytes).map_err(|e| LottieError::Json(e.to_string()))?;

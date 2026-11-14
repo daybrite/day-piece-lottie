@@ -30,8 +30,8 @@ fn hello_reads_back_its_facts() {
     assert_eq!(model.layers.len(), 1);
     assert_eq!(model.layers[0].kind, LayerKind::Shape);
     assert_eq!(model.layers[0].name.as_deref(), Some("square"));
-    assert!(model.assets.is_empty());
-    assert!(model.markers.is_empty());
+    assert_eq!(model.assets, [] as [day_piece_lottie::model::Asset; 0]);
+    assert_eq!(model.markers, [] as [day_piece_lottie::model::Marker; 0]);
     assert!(model.verify().is_empty(), "{:?}", model.verify());
 }
 
