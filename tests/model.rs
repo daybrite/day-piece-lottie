@@ -5,6 +5,7 @@
 //! a richer one that exercises every arm of the reader, and four malformed siblings.
 
 use day_piece_lottie::model::{AssetKind, Issue, LayerKind, LottieError, LottieModel};
+use std::assert_matches;
 
 const HELLO: &str = include_str!("data/hello.json");
 const RICH: &str = include_str!("data/rich.json");
@@ -112,10 +113,7 @@ fn broken_files_name_their_defect() {
 /// What cannot be read at all is an error, not a model with issues.
 #[test]
 fn unreadable_documents_are_errors() {
-    assert!(matches!(
-        LottieModel::parse(TRUNCATED),
-        Err(LottieError::Json(_))
-    ));
+    assert_matches!(LottieModel::parse(TRUNCATED), Err(LottieError::Json(_)));
     assert_eq!(LottieModel::parse("[1, 2]"), Err(LottieError::NotAnObject));
     assert_eq!(
         LottieModel::parse(r#"{"fr": 30, "ip": 0, "op": 60, "w": 10}"#),
