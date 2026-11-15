@@ -49,6 +49,6 @@ fn update(_backend: &mut Material, h: &AHandle, patch: &LottiePatch) {
 
 // looping/autoplay are set once at build; `name` and `speed` patch. `fill_measure` gives the uniform
 // growing-leaf sizing (which day-toolkit-material's `measure: None` default would otherwise collapse).
-day_pieces::renderer!(day_toolkit_material::RENDERERS, Material,
+day_spec::renderer!(day_toolkit_material::RENDERERS, Material,
     kind: KIND, props: LottieProps, patch: LottiePatch, make: make, update: update,
-    measure: day_pieces::fill_measure);
+    measure: day_spec::fill_measure);

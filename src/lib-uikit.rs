@@ -79,6 +79,6 @@ fn update(_backend: &mut Uikit, h: &Retained<UIView>, patch: &LottiePatch) {
 }
 
 // looping/autoplay are set once at build; `name` and `speed` patch.
-day_pieces::renderer!(day_toolkit_uikit::RENDERERS, Uikit,
+day_spec::renderer!(day_toolkit_uikit::RENDERERS, Uikit,
     kind: KIND, props: LottieProps, patch: LottiePatch, make: make, update: update,
-    measure: day_pieces::fill_measure);
+    measure: day_spec::fill_measure);
