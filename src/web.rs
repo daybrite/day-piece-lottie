@@ -18,16 +18,14 @@
 //!   this side reads the file through day's own resource opener and hands the page its text. That
 //!   is also the only way on WebKit: a page opened from a `file:` URL may not read a file with
 //!   `XMLHttpRequest`, not even one beside it, so an animation it had to fetch would never load.
-//! * WebKitGTK has no evaluation arm yet, so its page is told the name in its query string and
-//!   fetches the file itself, which its own file-URL policy allows once the view asks for the
-//!   app's assets (`app_assets`). web-dom fetches too, over http, from the deployed asset tree.
+//! * A backend without evaluation receives the name in its query string and fetches the file
+//!   within the app's assets (`app_assets`). On web-dom, evaluation reads animation data from
+//!   the embedded resource table, while the player document uses the bundle's local URL namespace.
 //!
 //! Two limits worth knowing, both from the engines rather than from here:
 //!
-//! * On gtk and web-dom the animation and the rate are what the page was opened with, because
-//!   changing either afterwards means evaluating something. A name or speed that changes later
-//!   reaches the view on the backends that evaluate, and elsewhere takes effect the next time the
-//!   piece is built — which navigation does anyway.
+//! * Changing the animation or rate in place requires evaluation support. On other backends,
+//!   changes take effect the next time the piece is built.
 //! * `macos-gtk` has no WebKitGTK at all, so there is no engine to host the
 //!   player; the view reports [`day_spec::Support::Unsupported`] and realizes the placeholder,
 //!   the same answer `day_piece_webview` gives there.
@@ -143,7 +141,7 @@ fn load_call(name: &str, looping: bool, autoplay: bool, speed: f64) -> String {
 /// alone can outlast five seconds (day-piece-webview's own walkthrough budgets thirty for it).
 /// Giving up early there leaves the stage empty for the rest of the run.
 const READY_TRIES: u32 = 600;
-const READY_PAUSE_MS: u64 = 50;
+const READY_PAUSE_MS: u32 = 50;
 
 /// Run `script` in the page and drop the reply: an eval dispatches nothing until its future is
 /// polled, and none of these calls has an answer worth waiting for.
@@ -182,14 +180,8 @@ fn tell_when_ready(js: JsHandle, script: String, turn: Rc<Cell<u64>>, mine: u64)
                 Err(EvalError::ViewGone) => return,
                 _ => {}
             }
-            let (deliver, waited) = day_async::oneshot::<()>();
-            day_async::schedule(
-                std::time::Duration::from_millis(READY_PAUSE_MS),
-                move || deliver.send(()),
-            );
-            if waited.await.is_err() {
-                return;
-            }
+            // Use the UI timer: day_async's process timer thread is unavailable on Wasm.
+            day_core::sleep(READY_PAUSE_MS).await;
         }
         log::warn!("day-piece-lottie: the player page never answered; nothing is playing");
     });
