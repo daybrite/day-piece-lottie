@@ -1,6 +1,6 @@
 [package]
 name = "day-piece-lottie"
-version = "0.5.3"
+version = "0.5.4"
 edition = "2024"
 rust-version = "1.100"
 description = "Lottie animations for Day apps, on every platform Day supports"
